@@ -46,6 +46,7 @@ void GCManager::addThreadState(GCThreadState* state)
 void GCManager::removeThreadState(GCThreadState* state)
 {
     m_threadsLocker.lock();
+    m_garbages.insert(m_garbages.end(), state->m_garbages.begin(), state->m_garbages.end());
     m_threads.erase(state->getThreadId());
     m_threadsLocker.unlock();
 }
@@ -112,6 +113,22 @@ void GCManager::markSweep()
                 pGarbage->gcUnmark();
                 ++itor;
             }
+        }
+    }
+
+    auto itor = m_garbages.begin();
+    while (itor != m_garbages.end())
+    {
+        GarbageCollection* pGarbage = *itor;
+        if (!pGarbage->isGcMarked())
+        {
+            itor = m_garbages.erase(itor);
+            m_delayCollected.push_back(pGarbage);
+        }
+        else
+        {
+            pGarbage->gcUnmark();
+            ++itor;
         }
     }
     m_threadsLocker.unlock();

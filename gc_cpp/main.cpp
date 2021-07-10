@@ -14,6 +14,7 @@
 GCLocker locker;
 std::unordered_set<DWORD> threads;
 std::atomic<uint32_t> s_count = 0;
+bool runFlag = true;
 
 class Test;
 
@@ -73,7 +74,7 @@ DWORD CALLBACK ThreadProc(LPVOID)
     GCThreadState state;
 
     size_t i = 0;
-    while (true)
+    while (runFlag)
     {
         GCScope scope;
         if (!s_test)
@@ -104,14 +105,23 @@ int main()
     for (size_t i = 0; i < TEST_COUNT; ++i)
         hThreads[i] = CreateThread(nullptr, 10240, ThreadProc, nullptr, 0, nullptr);
 
-    while (true)
+    for (size_t i = 0; i < 10; ++i)
     {
         manager.stopWorld();
         manager.markSweep();
         manager.resumeWorld();
         printf("%u\n", s_count.load());
-        Sleep(5000);
+        Sleep(500);
     }
+    runFlag = false;
+    for (size_t i = 0; i < TEST_COUNT; ++i)
+    {
+        if (WaitForSingleObject(hThreads[i], INFINITE) != WAIT_OBJECT_0) printf("wait fail\n");
+    }
+    manager.stopWorld();
+    manager.markSweep();
+    manager.resumeWorld();
+    printf("%u\n", s_count.load());
 
     return 0;
 }

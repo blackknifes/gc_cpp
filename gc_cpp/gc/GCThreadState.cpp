@@ -60,6 +60,7 @@ void GCThreadState::enterSafePoint()
 
 void GCThreadState::leaveSafePoint()
 {
+    m_safePoint = false;
     if (m_pauseRequested)
     {
         //加锁，并进入暂停流程
@@ -70,6 +71,14 @@ void GCThreadState::leaveSafePoint()
             m_locker.unlock();
             return;
         }
+        m_safePoint = true;
+        if (!m_pauseRequested)
+        {  //加锁后再次检查请求标记，如果已经退出gc流程，则直接退出
+            m_locker.unlock();
+            return;
+        }
+        m_safePointWaiter.notify();
+
         //先恢复变量，然后进入等待，保证等待完成后，变量被初始化
         m_gcWaiter->wait(&m_locker);
         m_gcWaiter = nullptr;
@@ -79,8 +88,6 @@ void GCThreadState::leaveSafePoint()
         //退出安全点
         m_locker.unlock();
     }
-    else
-        m_safePoint = false;
 }
 
 void GCThreadState::waitEnterSafePoint()

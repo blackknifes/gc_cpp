@@ -33,6 +33,7 @@ public:
 private:
     GCLocker m_threadsLocker;
     std::unordered_map<DWORD, GCThreadState*> m_threads;  // gcœﬂ≥Ã
+    std::list<GarbageCollection*> m_garbages;
     std::vector<GarbageCollection*> m_delayCollected;
     GCLocker m_gcLocker;
     GCWaiter m_gcWaiter;
