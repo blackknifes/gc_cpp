@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "GCLocker.h"
+#include "GCStopFlag.h"
 #include "GCThreadState.h"
 #include "GarbageCollected.h"
 
@@ -30,12 +31,16 @@ public:
 
     void markSweep();
 
+    const GCStopFlag* getStopFlag() const;
+
+    //扫描根节点
+    void scanRoots();
+
 private:
     GCLocker m_threadsLocker;
+    GCStopFlag m_stopFlag;
     std::unordered_map<DWORD, GCThreadState*> m_threads;  // gc线程
     std::list<GarbageCollection*> m_garbages;
     std::vector<GarbageCollection*> m_delayCollected;
-    GCLocker m_gcLocker;
-    GCWaiter m_gcWaiter;
 };
 #endif

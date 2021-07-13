@@ -9,7 +9,7 @@ public:
     GCWaiter();
     ~GCWaiter();
 	
-    bool wait(GCLocker* pLocker, DWORD timeout = INFINITE) const;
+    bool wait(const GCLocker* pLocker, DWORD timeout = INFINITE) const;
     void notify() const;
     void notifyAll() const;
 

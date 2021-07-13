@@ -7,7 +7,6 @@ GarbageCollection::GarbageCollection() : m_mark(false), m_pin(true)
 {
     GCThreadState* pThreadState = GCThreadState::GetCurrent();
     pThreadState->leaveSafePoint();
-    GCScope::GetCurrent()->addGarbage(this);
     pThreadState->addGarbage(this);
     pThreadState->enterSafePoint();
 }

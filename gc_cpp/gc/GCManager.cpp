@@ -54,17 +54,18 @@ void GCManager::removeThreadState(GCThreadState* state)
 void GCManager::stopWorld()
 {
     m_threadsLocker.lock();
-    for (const auto& item : m_threads) item.second->pause(&m_gcWaiter);
+    m_stopFlag.pause();
     for (const auto& item : m_threads) item.second->waitEnterSafePoint();
     m_threadsLocker.unlock();
 }
 
 void GCManager::resumeWorld()
 {
-    m_threadsLocker.lock();
-    for (const auto& item : m_threads) item.second->resume();
-    m_gcWaiter.notifyAll();
-    m_threadsLocker.unlock();
+    m_stopFlag.lock();
+    m_stopFlag.resume();
+    m_stopFlag.notifyAll();
+    m_stopFlag.unlock();
+
     for (GarbageCollection* pGarbage : m_delayCollected)
         delete pGarbage;
     m_delayCollected.clear();
@@ -88,12 +89,12 @@ void GCManager::markSweep()
     for (const auto& item : m_threads)
     {
         GCThreadState* pThreadState = item.second;
-        GCScope* pScope = pThreadState->getScope();
-        while (pScope)
-        {
-            for (GarbageCollection* pGarbage : pScope->m_garbageList) visitor.visit(pGarbage);
-            pScope = pScope->next();
-        }
+//         GCScope* pScope = pThreadState->getScope();
+//         while (pScope)
+//         {
+//             for (GarbageCollection* pGarbage : pScope->m_garbageList) visitor.visit(pGarbage);
+//             pScope = pScope->pre();
+//         }
     }
 
     for (const auto& item : m_threads)
@@ -133,3 +134,10 @@ void GCManager::markSweep()
     }
     m_threadsLocker.unlock();
 }
+
+const GCStopFlag* GCManager::getStopFlag() const
+{
+    return &m_stopFlag;
+}
+
+void GCManager::scanRoots() {}

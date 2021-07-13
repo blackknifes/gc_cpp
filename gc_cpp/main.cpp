@@ -43,11 +43,11 @@ public:
         --s_count;
     }
 
-    GCPtr<TestChild> m_child;
+    std::vector<GCPtr<TestChild>> m_children;
 
     void gcTrace(GCVisitor* visitor) override
     {
-        visitor->visit(m_child);
+        visitor->visit(m_children);
     }
 };
 
@@ -76,28 +76,32 @@ DWORD CALLBACK ThreadProc(LPVOID)
     size_t i = 0;
     while (runFlag)
     {
-        GCScope scope;
-        if (!s_test)
+        locker.lock();
+        if (!s_test) s_test = new Test();
         {
-            locker.lock();
-            s_test = new Test();
-            s_test->m_child = new TestChild(s_test);
-            locker.unlock();
+            GCUnsafeScope scope;
+            s_test->m_children.push_back(new TestChild(s_test));
         }
-        else
-        {
-            locker.lock();
-            s_test = nullptr;
-            locker.unlock();
-        }
-        Sleep(500);
+        locker.unlock();
     }
 
     return 0;
 }
 
+struct _NT_TIB* GetTib()
+{
+#ifdef _WIN64
+    return (struct _NT_TIB*)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
+#else
+    return (struct _NT_TIB*)(ULONG_PTR)__readfsdword(PcTeb);
+#endif
+};
+
 int main()
 {
+    NT_TIB* pTib = GetTib();
+    int a = 0;
+    void* d = &a;
     GCManager manager;
     HANDLE hThreads[TEST_COUNT];
 

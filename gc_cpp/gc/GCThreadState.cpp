@@ -8,6 +8,14 @@
 namespace
 {
     __declspec(thread) GCThreadState* s_threadState = nullptr;
+    struct _NT_TIB* GetTib()
+    {
+#ifdef _WIN64
+        return (struct _NT_TIB*)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
+#else
+        return (struct _NT_TIB*)(ULONG_PTR)__readfsdword(PcTeb);
+#endif
+    };
 }
 
 GCThreadState* GCThreadState::GetCurrent()
@@ -19,20 +27,19 @@ GCThreadState::GCThreadState()
 {
     assert(!s_threadState);
     s_threadState = this;
-    m_pauseRequested = false;
     m_safePoint = true;
-    GCManager::GetGlobal();
+    m_gcStopFlag = GCManager::GetGlobal()->getStopFlag();
     m_hThread = GetCurrentThread();
-    m_firstScope = m_lastScope = nullptr;
-    m_rootScope.construct();
-    m_firstScope = m_lastScope = &m_rootScope;
+    m_stackHigh = (void**)this;
+    NT_TIB* pTib = GetTib();
+    m_stackLow = (void**)pTib->StackBase;
+    
 
     GCManager::GetGlobal()->addThreadState(this);
 }
 
 GCThreadState::~GCThreadState()
 {
-    m_rootScope.destroy();
     s_threadState = nullptr;
     GCManager::GetGlobal()->removeThreadState(this);
 }
@@ -45,82 +52,47 @@ DWORD GCThreadState::getThreadId() const
 void GCThreadState::enterSafePoint()
 {
     m_safePoint = true;
-    if (m_pauseRequested)
-    {
-        m_locker.lock();
-        if (!m_pauseRequested)
-        {  //加锁后再次检查请求标记，如果已经退出gc流程，则直接退出
-            m_locker.unlock();
-            return;
-        }
-        m_safePointWaiter.notify();
-        m_locker.unlock();
-    }
 }
 
 void GCThreadState::leaveSafePoint()
 {
     m_safePoint = false;
-    if (m_pauseRequested)
+    if (m_gcStopFlag->isStop())
     {
         //加锁，并进入暂停流程
-        m_locker.lock();
+        m_gcStopFlag->lock();
         // gc已完成，忽略本次stw请求
-        if (!m_pauseRequested)
+        if (!m_gcStopFlag->isStop())
         {  //加锁后再次检查请求标记，如果已经退出gc流程，则直接退出
-            m_locker.unlock();
+            m_gcStopFlag->unlock();
             return;
         }
         m_safePoint = true;
-        if (!m_pauseRequested)
-        {  //加锁后再次检查请求标记，如果已经退出gc流程，则直接退出
-            m_locker.unlock();
-            return;
-        }
-        m_safePointWaiter.notify();
-
         //先恢复变量，然后进入等待，保证等待完成后，变量被初始化
-        m_gcWaiter->wait(&m_locker);
-        m_gcWaiter = nullptr;
-        m_pauseRequested = false;
-
+        m_gcStopFlag->wait();
         m_safePoint = false;
         //退出安全点
-        m_locker.unlock();
+        m_gcStopFlag->unlock();
     }
 }
 
 void GCThreadState::waitEnterSafePoint()
 {
-    m_locker.lock();
+    bool result;
     //设置安全点等待器
-    if (!m_safePoint) m_safePointWaiter.wait(&m_locker);
-    m_locker.unlock();
-}
-
-void GCThreadState::pause(GCWaiter* pGcWaiter)
-{
-    m_locker.lock();
-    m_gcWaiter = pGcWaiter;
-    m_pauseRequested = true;
-    m_locker.unlock();
-}
-
-void GCThreadState::resume()
-{
-    m_locker.lock();
-    m_pauseRequested = false;
-    m_locker.unlock();
+    do
+    {
+        m_gcStopFlag->lock();
+        result = m_safePoint;
+        m_gcStopFlag->unlock();
+        if (!result) SwitchToThread();
+    }
+    while (!result);
 }
 
 void GCThreadState::addGarbage(GarbageCollection* pGarbage)
 {
     m_garbages.push_back(pGarbage);
-}
-
-GCScope* GCThreadState::getScope() const
-{
-    return m_lastScope;
 }
 
 bool GCThreadState::isOnSafePoint() const

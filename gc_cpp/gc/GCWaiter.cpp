@@ -10,7 +10,7 @@ GCWaiter::~GCWaiter()
     notifyAll();
 }
 
-bool GCWaiter::wait(GCLocker* pLocker, DWORD timeout /*= INFINITE*/) const
+bool GCWaiter::wait(const GCLocker* pLocker, DWORD timeout /*= INFINITE*/) const
 {
     return ::SleepConditionVariableCS(&m_condition, &pLocker->m_section, timeout);
 }
