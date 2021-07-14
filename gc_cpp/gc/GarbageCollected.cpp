@@ -1,9 +1,8 @@
 #include "GarbageCollected.h"
 
-#include "GCScope.h"
 #include "GCThreadState.h"
 
-GarbageCollection::GarbageCollection() : m_mark(false), m_pin(true)
+GarbageCollected::GarbageCollected() : m_mark(false)
 {
     GCThreadState* pThreadState = GCThreadState::GetCurrent();
     pThreadState->leaveSafePoint();
@@ -11,41 +10,26 @@ GarbageCollection::GarbageCollection() : m_mark(false), m_pin(true)
     pThreadState->enterSafePoint();
 }
 
-GarbageCollection::~GarbageCollection() {}
+GarbageCollected::~GarbageCollected() {}
 
-void GarbageCollection::gcTrace(GCVisitor* visitor) {}
+void GarbageCollected::gcTrace(GCVisitor* visitor) {}
 
-GarbageCollection* GarbageCollection::getObjectPointer() const
+GarbageCollected* GarbageCollected::getObjectPointer() const
 {
-    return const_cast<GarbageCollection*>(this);
+    return const_cast<GarbageCollected*>(this);
 }
 
-void GarbageCollection::gcMark() const
+void GarbageCollected::gcMark() const
 {
     m_mark = true;
 }
 
-void GarbageCollection::gcUnmark() const
+void GarbageCollected::gcUnmark() const
 {
     m_mark = false;
 }
 
-bool GarbageCollection::isGcMarked() const
+bool GarbageCollected::isGcMarked() const
 {
     return m_mark;
-}
-
-void GarbageCollection::gcPin() const
-{
-    m_pin = true;
-}
-
-void GarbageCollection::gcUnpin() const
-{
-    m_pin = false;
-}
-
-bool GarbageCollection::isPined() const
-{
-    return m_pin;
 }

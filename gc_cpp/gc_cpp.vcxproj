@@ -158,7 +158,6 @@
     <ClCompile Include="gc\GarbageCollected.cpp" />
     <ClCompile Include="gc\GCLocker.cpp" />
     <ClCompile Include="gc\GCManager.cpp" />
-    <ClCompile Include="gc\GCScope.cpp" />
     <ClCompile Include="gc\GCStopFlag.cpp" />
     <ClCompile Include="gc\GCThreadState.cpp" />
     <ClCompile Include="gc\GCUnsafeScope.cpp" />
@@ -171,8 +170,8 @@
     <ClInclude Include="gc\GCDelayConstruct.h" />
     <ClInclude Include="gc\GCLocker.h" />
     <ClInclude Include="gc\GCManager.h" />
+    <ClInclude Include="gc\GCPersist.h" />
     <ClInclude Include="gc\GCPtr.h" />
-    <ClInclude Include="gc\GCScope.h" />
     <ClInclude Include="gc\GCStopFlag.h" />
     <ClInclude Include="gc\GCThreadState.h" />
     <ClInclude Include="gc\GCUnsafeScope.h" />

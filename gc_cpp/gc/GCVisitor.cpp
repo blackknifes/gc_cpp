@@ -2,7 +2,7 @@
 
 #include "GarbageCollected.h"
 
-void GCVisitor::visit(GarbageCollection* pGarbage)
+void GCVisitor::visit(GarbageCollected* pGarbage)
 {
     if (!pGarbage || pGarbage->isGcMarked()) return;
     pGarbage->gcMark();

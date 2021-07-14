@@ -8,15 +8,7 @@
 namespace
 {
     __declspec(thread) GCThreadState* s_threadState = nullptr;
-    struct _NT_TIB* GetTib()
-    {
-#ifdef _WIN64
-        return (struct _NT_TIB*)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
-#else
-        return (struct _NT_TIB*)(ULONG_PTR)__readfsdword(PcTeb);
-#endif
-    };
-}
+}  // namespace
 
 GCThreadState* GCThreadState::GetCurrent()
 {
@@ -30,10 +22,6 @@ GCThreadState::GCThreadState()
     m_safePoint = true;
     m_gcStopFlag = GCManager::GetGlobal()->getStopFlag();
     m_hThread = GetCurrentThread();
-    m_stackHigh = (void**)this;
-    NT_TIB* pTib = GetTib();
-    m_stackLow = (void**)pTib->StackBase;
-    
 
     GCManager::GetGlobal()->addThreadState(this);
 }
@@ -90,7 +78,7 @@ void GCThreadState::waitEnterSafePoint()
     while (!result);
 }
 
-void GCThreadState::addGarbage(GarbageCollection* pGarbage)
+void GCThreadState::addGarbage(GarbageCollected* pGarbage)
 {
     m_garbages.push_back(pGarbage);
 }
@@ -98,4 +86,14 @@ void GCThreadState::addGarbage(GarbageCollection* pGarbage)
 bool GCThreadState::isOnSafePoint() const
 {
     return m_safePoint;
+}
+
+void GCThreadState::addRoot(void** ppAddress, PFN_Cast cast)
+{
+    m_roots.push_back({ppAddress, cast});
+}
+
+void GCThreadState::popRoot()
+{
+    m_roots.pop_back();
 }

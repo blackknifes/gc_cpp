@@ -5,10 +5,10 @@
 GCUnsafeScope::GCUnsafeScope()
 {
     m_threadState = GCThreadState::GetCurrent();
-    m_threadState->leaveSafePoint();
+    if (m_threadState) m_threadState->leaveSafePoint();
 }
 
 GCUnsafeScope::~GCUnsafeScope()
 {
-    m_threadState->enterSafePoint();
+    if (m_threadState) m_threadState->enterSafePoint();
 }

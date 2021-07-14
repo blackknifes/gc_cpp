@@ -8,6 +8,7 @@
 
 #include "gc/GCManager.h"
 #include "gc/GCPtr.h"
+#include "gc/GCPersist.h"
 
 #define TEST_COUNT 512
 
@@ -18,7 +19,7 @@ bool runFlag = true;
 
 class Test;
 
-class TestChild : public GarbageCollected<TestChild>
+class TestChild : public GarbageCollected
 {
 public:
     TestChild(GCPtr<Test> pTest);
@@ -30,7 +31,7 @@ private:
     GCPtr<Test> m_child;
 };
 
-class Test : public GarbageCollected<Test>
+class Test : public GarbageCollected
 {
 public:
     Test()
@@ -67,10 +68,10 @@ void TestChild::gcTrace(GCVisitor* visitor)
     visitor->visit(m_child);
 }
 
-GCPtr<Test> s_test;
 
-DWORD CALLBACK ThreadProc(LPVOID)
+DWORD CALLBACK ThreadProc(LPVOID ptr)
 {
+    GCPersist<Test>& s_test = *(GCPersist<Test>*)ptr;
     GCThreadState state;
 
     size_t i = 0;
@@ -82,6 +83,7 @@ DWORD CALLBACK ThreadProc(LPVOID)
             GCUnsafeScope scope;
             s_test->m_children.push_back(new TestChild(s_test));
         }
+        if (s_test->m_children.size() % 10240 == 0) s_test = nullptr;
         locker.unlock();
     }
 
@@ -97,35 +99,47 @@ struct _NT_TIB* GetTib()
 #endif
 };
 
-int main()
+void test()
 {
-    NT_TIB* pTib = GetTib();
-    int a = 0;
-    void* d = &a;
+    runFlag = true;
     GCManager manager;
+    GCPersist<Test> test;
     HANDLE hThreads[TEST_COUNT];
 
     printf("∆Ù∂Ø≤‚ ‘\n");
     for (size_t i = 0; i < TEST_COUNT; ++i)
-        hThreads[i] = CreateThread(nullptr, 10240, ThreadProc, nullptr, 0, nullptr);
+        hThreads[i] = CreateThread(nullptr, 10240, ThreadProc, &test, 0, nullptr);
 
-    for (size_t i = 0; i < 10; ++i)
+    for (size_t i = 0; i < 2; ++i)
     {
+        DWORD time = GetTickCount();
         manager.stopWorld();
         manager.markSweep();
         manager.resumeWorld();
-        printf("%u\n", s_count.load());
-        Sleep(500);
+        printf("%u, %u ms\n", s_count.load(), GetTickCount() - time);
+        Sleep(200);
     }
     runFlag = false;
     for (size_t i = 0; i < TEST_COUNT; ++i)
     {
         if (WaitForSingleObject(hThreads[i], INFINITE) != WAIT_OBJECT_0) printf("wait fail\n");
+        CloseHandle(hThreads[i]);
     }
+    test = nullptr;
+    DWORD time = GetTickCount();
     manager.stopWorld();
     manager.markSweep();
     manager.resumeWorld();
-    printf("%u\n", s_count.load());
+    printf("%u, %u ms\n", s_count.load(), GetTickCount() - time);
+}
+
+int main()
+{
+   for (size_t i = 0; i < 1; ++i)
+   {
+       system("cls");
+       test();
+   }
 
     return 0;
 }

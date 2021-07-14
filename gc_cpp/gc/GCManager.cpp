@@ -66,7 +66,7 @@ void GCManager::resumeWorld()
     m_stopFlag.notifyAll();
     m_stopFlag.unlock();
 
-    for (GarbageCollection* pGarbage : m_delayCollected)
+    for (GarbageCollected* pGarbage : m_delayCollected)
         delete pGarbage;
     m_delayCollected.clear();
 }
@@ -89,12 +89,16 @@ void GCManager::markSweep()
     for (const auto& item : m_threads)
     {
         GCThreadState* pThreadState = item.second;
-//         GCScope* pScope = pThreadState->getScope();
-//         while (pScope)
-//         {
-//             for (GarbageCollection* pGarbage : pScope->m_garbageList) visitor.visit(pGarbage);
-//             pScope = pScope->pre();
-//         }
+        for (const auto& item : pThreadState->m_roots)
+        {
+            GarbageCollected* pObject = item.second(*item.first);
+            visitor.visit(pObject);
+        }
+    }
+    for (const auto& item: m_roots)
+    {
+        GarbageCollected* pObject = item.second(*item.first);
+        visitor.visit(pObject);
     }
 
     for (const auto& item : m_threads)
@@ -103,7 +107,7 @@ void GCManager::markSweep()
         auto itor = pThreadState->m_garbages.begin();
         while (itor != pThreadState->m_garbages.end())
         {
-            GarbageCollection* pGarbage = *itor;
+            GarbageCollected* pGarbage = *itor;
             if (!pGarbage->isGcMarked())
             {
                 itor = pThreadState->m_garbages.erase(itor);
@@ -120,7 +124,7 @@ void GCManager::markSweep()
     auto itor = m_garbages.begin();
     while (itor != m_garbages.end())
     {
-        GarbageCollection* pGarbage = *itor;
+        GarbageCollected* pGarbage = *itor;
         if (!pGarbage->isGcMarked())
         {
             itor = m_garbages.erase(itor);
@@ -140,4 +144,17 @@ const GCStopFlag* GCManager::getStopFlag() const
     return &m_stopFlag;
 }
 
-void GCManager::scanRoots() {}
+void GCManager::addRoot(void** ppAddress, PFN_Cast cast) 
+{
+    m_threadsLocker.lock();
+    m_roots.insert({ppAddress, cast});
+    m_threadsLocker.unlock();
+}
+
+void GCManager::removeRoot(void** ppAddress) 
+{
+    m_threadsLocker.lock();
+    auto itor = m_roots.find(ppAddress);
+    if (itor != m_roots.end()) m_roots.erase(itor);
+    m_threadsLocker.unlock();
+}

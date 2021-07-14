@@ -4,14 +4,14 @@
 
 #include <atomic>
 #include <list>
+#include <vector>
 
 #include "GCDelayConstruct.h"
 #include "GCLocker.h"
-#include "GCScope.h"
 #include "GCStopFlag.h"
 #include "GCWaiter.h"
 
-class GarbageCollection;
+class GarbageCollected;
 
 class GCThreadState
 {
@@ -27,19 +27,23 @@ public:
     void leaveSafePoint();
     void waitEnterSafePoint();
 
-    void addGarbage(GarbageCollection* pGarbage);
+    void addGarbage(GarbageCollected* pGarbage);
     bool isOnSafePoint() const;
 
 private:
-    friend class GCScope;
     friend class GCManager;
+    template<typename _Ty>
+    friend class GCPersist;
+
+    typedef GarbageCollected* (*PFN_Cast)(void*);
+    void addRoot(void** ppAddress, PFN_Cast cast);
+    void popRoot();
 
     HANDLE m_hThread;                //线程句柄
     const GCStopFlag* m_gcStopFlag;  // gc等待器
-    void** m_stackLow;               // 堆栈顶
-    void** m_stackHigh;             // 堆栈底
+    std::vector<std::pair<void**, PFN_Cast>> m_roots;
 
-    std::list<GarbageCollection*> m_garbages;  //等待收集的垃圾
+    std::list<GarbageCollected*> m_garbages;  //等待收集的垃圾
     std::atomic<bool> m_safePoint;
 };
 #endif

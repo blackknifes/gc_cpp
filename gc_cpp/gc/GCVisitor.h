@@ -9,12 +9,12 @@
 template<typename _Ty>
 class GCPtr;
 
-class GarbageCollection;
+class GarbageCollected;
 
 class GCVisitor
 {
 public:
-    virtual void visit(GarbageCollection* pGarbage);
+    virtual void visit(GarbageCollected* pGarbage);
 
     template<typename _Ty>
     void visit(const GCPtr<_Ty>& pGarbage)

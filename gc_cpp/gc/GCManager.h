@@ -33,14 +33,19 @@ public:
 
     const GCStopFlag* getStopFlag() const;
 
-    //扫描根节点
-    void scanRoots();
-
 private:
+    template<typename _Ty>
+    friend class GCPersist;
+
+    typedef GarbageCollected* (*PFN_Cast)(void*);
+    void addRoot(void** ppAddress, PFN_Cast cast);
+    void removeRoot(void** ppAddress);
+
     GCLocker m_threadsLocker;
     GCStopFlag m_stopFlag;
+    std::unordered_map<void**, PFN_Cast> m_roots;         //全局根节点
     std::unordered_map<DWORD, GCThreadState*> m_threads;  // gc线程
-    std::list<GarbageCollection*> m_garbages;
-    std::vector<GarbageCollection*> m_delayCollected;
+    std::list<GarbageCollected*> m_garbages;
+    std::vector<GarbageCollected*> m_delayCollected;
 };
 #endif
