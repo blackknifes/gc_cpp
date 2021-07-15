@@ -30,6 +30,9 @@ public:
     void addGarbage(GarbageCollected* pGarbage);
     bool isOnSafePoint() const;
 
+    void scanDestroyableGarbage();
+    void destroyGarbage();
+
 private:
     friend class GCManager;
     template<typename _Ty>
@@ -43,7 +46,8 @@ private:
     const GCStopFlag* m_gcStopFlag;  // gc等待器
     std::vector<std::pair<void**, PFN_Cast>> m_roots;
 
-    std::list<GarbageCollected*> m_garbages;  //等待收集的垃圾
+    std::list<GarbageCollected*> m_garbages;            //等待收集的垃圾
+    std::vector<GarbageCollected*> m_delayDestroy;      //延迟销毁
     std::atomic<bool> m_safePoint;
 };
 #endif

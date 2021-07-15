@@ -101,25 +101,11 @@ void GCManager::markSweep()
         visitor.visit(pObject);
     }
 
-    for (const auto& item : m_threads)
-    {
-        GCThreadState* pThreadState = item.second;
-        auto itor = pThreadState->m_garbages.begin();
-        while (itor != pThreadState->m_garbages.end())
-        {
-            GarbageCollected* pGarbage = *itor;
-            if (!pGarbage->isGcMarked())
-            {
-                itor = pThreadState->m_garbages.erase(itor);
-                m_delayCollected.push_back(pGarbage);
-            }
-            else
-            {
-                pGarbage->gcUnmark();
-                ++itor;
-            }
-        }
-    }
+//     for (const auto& item : m_threads)
+//     {
+//         GCThreadState* pThreadState = item.second;
+//         pThreadState->scanDestroyableGarbage();
+//     }
 
     auto itor = m_garbages.begin();
     while (itor != m_garbages.end())

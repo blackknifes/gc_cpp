@@ -16,6 +16,7 @@ public:
 private:
     friend class GCVisitor;
     friend class GCManager;
+    friend class GCThreadState;
     template<typename _Ty>
     friend class GCPersist;
 

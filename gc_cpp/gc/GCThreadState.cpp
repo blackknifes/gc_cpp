@@ -61,6 +61,8 @@ void GCThreadState::leaveSafePoint()
         m_safePoint = false;
         //退出安全点
         m_gcStopFlag->unlock();
+        scanDestroyableGarbage();
+        destroyGarbage();
     }
 }
 
@@ -86,6 +88,32 @@ void GCThreadState::addGarbage(GarbageCollected* pGarbage)
 bool GCThreadState::isOnSafePoint() const
 {
     return m_safePoint;
+}
+
+void GCThreadState::scanDestroyableGarbage()
+{
+    auto itor = m_garbages.begin();
+    while (itor != m_garbages.end())
+    {
+        GarbageCollected* pGarbage = *itor;
+        if (!pGarbage->isGcMarked())
+        {
+            m_delayDestroy.push_back(*itor);
+            itor = m_garbages.erase(itor);
+        }
+        else
+        {
+            pGarbage->gcUnmark();
+            ++itor;
+        }
+    }
+}
+
+void GCThreadState::destroyGarbage()
+{
+    for (GarbageCollected* pObject : m_delayDestroy)
+        delete pObject;
+    m_delayDestroy.clear();
 }
 
 void GCThreadState::addRoot(void** ppAddress, PFN_Cast cast)
