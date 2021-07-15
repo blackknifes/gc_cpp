@@ -129,8 +129,9 @@ void test()
     DWORD time = GetTickCount();
     manager.stopWorld();
     manager.markSweep();
-    manager.resumeWorld();
     printf("%u, %u ms\n", s_count.load(), GetTickCount() - time);
+    manager.resumeWorld();
+    printf("%u\n", s_count.load());
 }
 
 int main()
