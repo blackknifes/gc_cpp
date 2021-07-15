@@ -30,7 +30,6 @@ public:
     void addGarbage(GarbageCollected* pGarbage);
     bool isOnSafePoint() const;
 
-    void scanDestroyableGarbage();
     void destroyGarbage();
 
 private:

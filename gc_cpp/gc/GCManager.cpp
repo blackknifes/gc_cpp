@@ -101,12 +101,6 @@ void GCManager::markSweep()
         visitor.visit(pObject);
     }
 
-//     for (const auto& item : m_threads)
-//     {
-//         GCThreadState* pThreadState = item.second;
-//         pThreadState->scanDestroyableGarbage();
-//     }
-
     auto itor = m_garbages.begin();
     while (itor != m_garbages.end())
     {
