@@ -16,13 +16,20 @@ int main()
 
 2.在想要支持的gc类上继承 GarbageCollected，并实现gcTrace，用以追踪需要gc的成员对象
 ```cpp
+class TestChild: public GarbageCollected
+{
+};
+
 class Test: public GarbageCollected
 {
 public:
   virtual void gcTrace(GCVisitor* visitor) override
   {
     //使用visitor追踪需要gc的对象目标
+    visitor->visit(m_child);
   }
+private:
+  GCPtr<TestChild> m_child;
 };
 ```
 3.在需要支持gc的线程上构造GCThreadState
@@ -43,7 +50,7 @@ DWORD CALLBACK ThreadProc(LPVOID pData)
 
 5.在堆栈上使用GCPersist<Type>来记录在堆栈上的根对象，以保证精确gc的正确性
 ```cpp
-GCPersist<Type> pObject = new Type();
+GCPersist<Test> pObject = new Test();
 ```
 
 
