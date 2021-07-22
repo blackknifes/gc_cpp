@@ -18,6 +18,7 @@ GCThreadState* GCThreadState::GetCurrent()
 GCThreadState::GCThreadState()
 {
     assert(!s_threadState);
+    m_scope = nullptr;
     s_threadState = this;
     m_safePoint = true;
     m_gcStopFlag = GCManager::GetGlobal()->getStopFlag();
@@ -108,6 +109,24 @@ void GCThreadState::destroyGarbage()
     }
     for (GarbageCollected* pObject : m_delayDestroy) delete pObject;
     m_delayDestroy.clear();
+}
+
+void GCThreadState::enterScope(GCScope* pScope)
+{
+    pScope->m_pre = m_scope;
+    if (m_scope) m_scope->m_next = pScope;
+    m_scope = pScope;
+}
+
+void GCThreadState::leaveScope()
+{
+    m_scope = m_scope->pre();
+    if (m_scope) m_scope->m_next = nullptr;
+}
+
+GCScope* GCThreadState::getScope() const
+{
+    return m_scope;
 }
 
 void GCThreadState::addRoot(void** ppAddress, PFN_Cast cast)

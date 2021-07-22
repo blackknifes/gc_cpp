@@ -65,9 +65,11 @@ void GCManager::resumeWorld()
     m_stopFlag.resume();
     m_stopFlag.notifyAll();
     m_stopFlag.unlock();
+}
 
-    for (GarbageCollected* pGarbage : m_delayCollected)
-        delete pGarbage;
+void GCManager::lazySweep()
+{
+    for (GarbageCollected* pGarbage : m_delayCollected) delete pGarbage;
     m_delayCollected.clear();
 }
 
@@ -94,11 +96,40 @@ void GCManager::markSweep()
             GarbageCollected* pObject = item.second(*item.first);
             visitor.visit(pObject);
         }
+
+        GCScope* pScope = pThreadState->getScope();
+        while (pScope)
+        {
+            pScope->visit(&visitor);
+            pScope = pScope->pre();
+        }
     }
+
     for (const auto& item: m_roots)
     {
         GarbageCollected* pObject = item.second(*item.first);
         visitor.visit(pObject);
+    }
+
+    for (const auto& item : m_threads)
+    {
+        GCThreadState* pThreadState = item.second;
+
+        auto itor = pThreadState->m_garbages.begin();
+        while (itor != pThreadState->m_garbages.end())
+        {
+            GarbageCollected* pGarbage = *itor;
+            if (!pGarbage->isGcMarked())
+            {
+                itor = pThreadState->m_garbages.erase(itor);
+                m_delayCollected.push_back(pGarbage);
+            }
+            else
+            {
+                pGarbage->gcUnmark();
+                ++itor;
+            }
+        }
     }
 
     auto itor = m_garbages.begin();

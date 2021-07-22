@@ -25,6 +25,8 @@ public:
     void stopWorld();
     //世界恢复
     void resumeWorld();
+    //懒清理
+    void lazySweep();
 
     //打印当前进入安全点线程的数量
     void printNumberOfSafePointThread() const;

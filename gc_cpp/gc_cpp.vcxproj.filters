@@ -42,6 +42,9 @@
     <ClCompile Include="gc\GCStopFlag.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="gc\GCScope.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gc\GarbageCollected.h">
@@ -75,6 +78,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc\GCPersist.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\GCScope.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

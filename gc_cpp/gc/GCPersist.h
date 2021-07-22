@@ -1,6 +1,7 @@
 #ifndef __GCPERSIST_H__
 #define __GCPERSIST_H__
 #include "GCThreadState.h"
+#include "GCUnsafeScope.h"
 
 template<typename _Ty>
 class GCPersist
@@ -108,10 +109,11 @@ public:
         return m_pointer;
     }
 
-    operator _Ty*() const 
+    operator _Ty*() const
     {
         return m_pointer;
     }
+
 private:
     static GarbageCollected* Cast(void* ptr)
     {
@@ -127,7 +129,7 @@ private:
             GCManager::GetGlobal()->addRoot((void**)&m_pointer, Cast);
     }
 
-    void removeRoot() 
+    void removeRoot()
     {
         GCThreadState* pThreadState = GCThreadState::GetCurrent();
         if (pThreadState)

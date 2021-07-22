@@ -7,14 +7,16 @@
 #include <unordered_set>
 
 #include "gc/GCManager.h"
-#include "gc/GCPtr.h"
 #include "gc/GCPersist.h"
+#include "gc/GCPtr.h"
+#include "gc/GCScope.h"
 
 #define TEST_COUNT 512
 
 GCLocker locker;
 std::unordered_set<DWORD> threads;
 std::atomic<uint32_t> s_count = 0;
+std::atomic<uint32_t> s_threadCount = 0;
 bool runFlag = true;
 
 class Test;
@@ -37,7 +39,7 @@ public:
     Test()
     {
         uint32_t count = ++s_count;
-        if (count % 2048 == 0) printf("object count: %u\n", count);
+        if (count % 20480 == 0) printf("object count: %u\n", count);
     }
     ~Test()
     {
@@ -55,7 +57,7 @@ public:
 TestChild::TestChild(GCPtr<Test> pTest) : m_child(pTest)
 {
     uint32_t count = ++s_count;
-    if (count % 2048 == 0) printf("object count: %u\n", count);
+    if (count % 20480 == 0) printf("object count: %u\n", count);
 }
 
 TestChild::~TestChild()
@@ -68,7 +70,6 @@ void TestChild::gcTrace(GCVisitor* visitor)
     visitor->visit(m_child);
 }
 
-
 DWORD CALLBACK ThreadProc(LPVOID ptr)
 {
     GCPersist<Test>& s_test = *(GCPersist<Test>*)ptr;
@@ -77,27 +78,17 @@ DWORD CALLBACK ThreadProc(LPVOID ptr)
     size_t i = 0;
     while (runFlag)
     {
+        GCScope scope;
         locker.lock();
         if (!s_test) s_test = new Test();
-        {
-            GCUnsafeScope scope;
-            s_test->m_children.push_back(new TestChild(s_test));
-        }
-        if (s_test->m_children.size() % 10240 == 0) s_test = nullptr;
+        s_test->m_children.push_back(new TestChild(s_test));
+        if (s_test->m_children.size() % 10240 == 0) 
+            s_test = nullptr;
         locker.unlock();
     }
 
     return 0;
 }
-
-struct _NT_TIB* GetTib()
-{
-#ifdef _WIN64
-    return (struct _NT_TIB*)__readgsqword(FIELD_OFFSET(NT_TIB, Self));
-#else
-    return (struct _NT_TIB*)(ULONG_PTR)__readfsdword(PcTeb);
-#endif
-};
 
 void test()
 {
@@ -110,13 +101,14 @@ void test()
     for (size_t i = 0; i < TEST_COUNT; ++i)
         hThreads[i] = CreateThread(nullptr, 10240, ThreadProc, &test, 0, nullptr);
 
-    for (size_t i = 0; i < 2; ++i)
+    for (size_t i = 0; i < 2000; ++i)
     {
         DWORD time = GetTickCount();
         manager.stopWorld();
         manager.markSweep();
         manager.resumeWorld();
         printf("%u, %u ms\n", s_count.load(), GetTickCount() - time);
+        manager.lazySweep();
         Sleep(200);
     }
     runFlag = false;
@@ -129,18 +121,19 @@ void test()
     DWORD time = GetTickCount();
     manager.stopWorld();
     manager.markSweep();
-    printf("%u, %u ms\n", s_count.load(), GetTickCount() - time);
     manager.resumeWorld();
+    printf("%u, %u ms\n", s_count.load(), GetTickCount() - time);
+    manager.lazySweep();
     printf("%u\n", s_count.load());
 }
 
 int main()
 {
-   for (size_t i = 0; i < 1; ++i)
-   {
-       system("cls");
-       test();
-   }
+    for (size_t i = 0; i < 1; ++i)
+    {
+        system("cls");
+        test();
+    }
 
     return 0;
 }

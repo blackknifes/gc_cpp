@@ -24,6 +24,6 @@ private:
     void gcUnmark() const;
     bool isGcMarked() const;
 
-    mutable std::atomic<bool> m_mark;
+    mutable bool m_mark;
 };
 #endif

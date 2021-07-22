@@ -2,7 +2,9 @@
 #define __GCVISITOR_H__
 #include <deque>
 #include <list>
+#include <map>
 #include <set>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
@@ -51,11 +53,54 @@ public:
     {
         visit(vec.begin(), vec.end());
     }
+    template<typename _kTy, typename _vTy>
+    void visit(const std::map<_kTy, GCPtr<_vTy>>& _map)
+    {
+        for (auto itor = _map.begin(); itor != _map.end(); ++itor) visit(itor->second);
+    }
+
+    template<typename _kTy, typename _vTy>
+    void visit(const std::map<GCPtr<_kTy>, _vTy>& _map)
+    {
+        for (auto itor = _map.begin(); itor != _map.end(); ++itor) visit(itor->first);
+    }
+
+    template<typename _kTy, typename _vTy>
+    void visit(const std::map<GCPtr<_kTy>, GCPtr<_vTy>>& _map)
+    {
+        for (auto itor = _map.begin(); itor != _map.end(); ++itor)
+        {
+            visit(itor->first);
+            visit(itor->second);
+        }
+    }
 
     template<typename _Ty>
     void visit(const std::unordered_set<GCPtr<_Ty>>& vec)
     {
         visit(vec.begin(), vec.end());
+    }
+
+    template<typename _kTy, typename _vTy>
+    void visit(const std::unordered_map<_kTy, GCPtr<_vTy>>& _map)
+    {
+        for (auto itor = _map.begin(); itor != _map.end(); ++itor) visit(itor->second);
+    }
+
+    template<typename _kTy, typename _vTy>
+    void visit(const std::unordered_map<GCPtr<_kTy>, _vTy>& _map)
+    {
+        for (auto itor = _map.begin(); itor != _map.end(); ++itor) visit(itor->first);
+    }
+
+    template<typename _kTy, typename _vTy>
+    void visit(const std::unordered_map<GCPtr<_kTy>, GCPtr<_vTy>>& _map)
+    {
+        for (auto itor = _map.begin(); itor != _map.end(); ++itor)
+        {
+            visit(itor->first);
+            visit(itor->second);
+        }
     }
 };
 #endif

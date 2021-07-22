@@ -8,6 +8,7 @@
 
 #include "GCDelayConstruct.h"
 #include "GCLocker.h"
+#include "GCScope.h"
 #include "GCStopFlag.h"
 #include "GCWaiter.h"
 
@@ -32,6 +33,10 @@ public:
 
     void destroyGarbage();
 
+    void enterScope(GCScope* pScope);
+    void leaveScope();
+
+    GCScope* getScope() const;
 private:
     friend class GCManager;
     template<typename _Ty>
@@ -45,8 +50,10 @@ private:
     const GCStopFlag* m_gcStopFlag;  // gc等待器
     std::vector<std::pair<void**, PFN_Cast>> m_roots;
 
-    std::list<GarbageCollected*> m_garbages;            //等待收集的垃圾
-    std::vector<GarbageCollected*> m_delayDestroy;      //延迟销毁
+    GCScope* m_scope;
+
+    std::list<GarbageCollected*> m_garbages;        //等待收集的垃圾
+    std::vector<GarbageCollected*> m_delayDestroy;  //延迟销毁
     std::atomic<bool> m_safePoint;
 };
 #endif

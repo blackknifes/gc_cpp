@@ -1,12 +1,16 @@
 #include "GarbageCollected.h"
 
 #include "GCThreadState.h"
+#include "GCScope.h"
 
 GarbageCollected::GarbageCollected() : m_mark(false)
 {
     GCThreadState* pThreadState = GCThreadState::GetCurrent();
+    GCScope* pScope = GCScope::GetCurrent();
     pThreadState->leaveSafePoint();
     pThreadState->addGarbage(this);
+    if (pScope)
+        pScope->addObject(this);
     pThreadState->enterSafePoint();
 }
 
