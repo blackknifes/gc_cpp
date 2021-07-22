@@ -35,7 +35,7 @@ void GCMarkThread::doMark()
 {
     m_locker.lock();
 
-    if (!m_needGC) m_waiter.wait(&m_locker);
+    if (!m_needGC) m_waiter.wait(&m_locker, 2500);
     m_manager->stopWorld();
     m_manager->mark();
     m_manager->resumeWorld();

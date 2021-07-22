@@ -40,7 +40,6 @@ public:
     {
         uint32_t count = ++s_count;
         if (count % 2048 == 0) printf("object count: %u\n", count);
-        if (count % 102400 == 0) GCManager::GetGlobal()->gc();
     }
     ~Test()
     {
@@ -59,7 +58,6 @@ TestChild::TestChild(GCPtr<Test> pTest) : m_child(pTest)
 {
     uint32_t count = ++s_count;
     if (count % 2048 == 0) printf("object count: %u\n", count);
-    if (count % 102400 == 0) GCManager::GetGlobal()->gc();
 }
 
 TestChild::~TestChild()
