@@ -62,4 +62,4 @@ GCManager::GetGlobal()->gc(); //发起gc，实际gc将在mark 以及 sweep线程
 7.退出时，等待所有gc线程结束
 
   
-PS: 在容器操作前，请使用GCUnsafeScope 进入非安全区域，因为stl容器操作会导致对象引用关系变化
+#### PS: 在容器操作前，请使用GCUnsafeScope 进入非安全区域，因为stl容器操作会导致对象引用关系变化
