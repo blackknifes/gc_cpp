@@ -1,7 +1,10 @@
 #include "GarbageCollected.h"
 
-#include "GCThreadState.h"
+#include "GCManager.h"
 #include "GCScope.h"
+#include "GCThreadState.h"
+
+std::atomic<size_t> s_count = 0;
 
 GarbageCollected::GarbageCollected() : m_mark(false)
 {
@@ -9,12 +12,15 @@ GarbageCollected::GarbageCollected() : m_mark(false)
     GCScope* pScope = GCScope::GetCurrent();
     pThreadState->leaveSafePoint();
     pThreadState->addGarbage(this);
-    if (pScope)
-        pScope->addObject(this);
+    if (pScope) pScope->addObject(this);
     pThreadState->enterSafePoint();
+    if (++s_count > 102400) GCManager::GetGlobal()->gc();
 }
 
-GarbageCollected::~GarbageCollected() {}
+GarbageCollected::~GarbageCollected()
+{
+    --s_count;
+}
 
 void GarbageCollected::gcTrace(GCVisitor* visitor) {}
 

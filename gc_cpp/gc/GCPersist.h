@@ -44,7 +44,7 @@ public:
     const GCPersist& operator=(const GCPersist& ptr)
     {
         GCUnsafeScope unsafeScope;
-        m_pointer = ptr.m_pointer;
+        m_pointer = ptr.get();
         return *this;
     }
 
@@ -52,7 +52,7 @@ public:
     const GCPersist& operator=(const GCPersist<_Ty2>& ptr)
     {
         GCUnsafeScope unsafeScope;
-        m_pointer = ptr.m_pointer;
+        m_pointer = ptr.get();
         return *this;
     }
 
@@ -72,12 +72,12 @@ public:
     }
     bool operator==(const GCPersist& ptr) const
     {
-        return m_pointer == ptr.m_pointer;
+        return m_pointer == ptr.get();
     }
     template<typename _Ty2>
     bool operator==(const GCPersist<_Ty2>& ptr) const
     {
-        return m_pointer == ptr.m_pointer;
+        return m_pointer == ptr.get();
     }
 
     bool operator!=(const _Ty* ptr) const
@@ -86,12 +86,12 @@ public:
     }
     bool operator!=(const GCPersist& ptr) const
     {
-        return m_pointer != ptr.m_pointer;
+        return m_pointer != ptr.get();
     }
     template<typename _Ty2>
     bool operator!=(const GCPersist<_Ty2>& ptr) const
     {
-        return m_pointer != ptr.m_pointer;
+        return m_pointer != ptr.get();
     }
 
     _Ty* operator->() const

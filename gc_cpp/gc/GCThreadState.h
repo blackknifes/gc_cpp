@@ -6,10 +6,9 @@
 #include <list>
 #include <vector>
 
-#include "GCDelayConstruct.h"
 #include "GCLocker.h"
 #include "GCScope.h"
-#include "GCStopFlag.h"
+#include "GCStopTheWorld.h"
 #include "GCWaiter.h"
 
 class GarbageCollected;
@@ -31,12 +30,11 @@ public:
     void addGarbage(GarbageCollected* pGarbage);
     bool isOnSafePoint() const;
 
-    void destroyGarbage();
-
     void enterScope(GCScope* pScope);
     void leaveScope();
 
     GCScope* getScope() const;
+
 private:
     friend class GCManager;
     template<typename _Ty>
@@ -46,8 +44,9 @@ private:
     void addRoot(void** ppAddress, PFN_Cast cast);
     void popRoot();
 
-    HANDLE m_hThread;                //线程句柄
-    const GCStopFlag* m_gcStopFlag;  // gc等待器
+    HANDLE m_hThread;                      //线程句柄
+    DWORD m_threadId;                      //线程id
+    const GCStopTheWorld* m_stopTheWorld;  // gc等待器
     std::vector<std::pair<void**, PFN_Cast>> m_roots;
 
     GCScope* m_scope;

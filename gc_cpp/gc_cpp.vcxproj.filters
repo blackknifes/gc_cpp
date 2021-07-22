@@ -39,18 +39,24 @@
     <ClCompile Include="main.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="gc\GCStopFlag.cpp">
+    <ClCompile Include="gc\GCStopTheWorld.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="gc\GCScope.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="gc\GCThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gc\GCMarkThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gc\GCSweepThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gc\GarbageCollected.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\GCDelayConstruct.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc\GCLocker.h">
@@ -74,13 +80,22 @@
     <ClInclude Include="gc\GCWaiter.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="gc\GCStopFlag.h">
+    <ClInclude Include="gc\GCStopTheWorld.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc\GCPersist.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc\GCScope.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\GCThread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\GCMarkThread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\GCSweepThread.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

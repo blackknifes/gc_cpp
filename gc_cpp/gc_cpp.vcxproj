@@ -158,8 +158,11 @@
     <ClCompile Include="gc\GarbageCollected.cpp" />
     <ClCompile Include="gc\GCLocker.cpp" />
     <ClCompile Include="gc\GCManager.cpp" />
+    <ClCompile Include="gc\GCMarkThread.cpp" />
     <ClCompile Include="gc\GCScope.cpp" />
-    <ClCompile Include="gc\GCStopFlag.cpp" />
+    <ClCompile Include="gc\GCStopTheWorld.cpp" />
+    <ClCompile Include="gc\GCSweepThread.cpp" />
+    <ClCompile Include="gc\GCThread.cpp" />
     <ClCompile Include="gc\GCThreadState.cpp" />
     <ClCompile Include="gc\GCUnsafeScope.cpp" />
     <ClCompile Include="gc\GCVisitor.cpp" />
@@ -168,13 +171,15 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gc\GarbageCollected.h" />
-    <ClInclude Include="gc\GCDelayConstruct.h" />
     <ClInclude Include="gc\GCLocker.h" />
     <ClInclude Include="gc\GCManager.h" />
+    <ClInclude Include="gc\GCMarkThread.h" />
     <ClInclude Include="gc\GCPersist.h" />
     <ClInclude Include="gc\GCPtr.h" />
     <ClInclude Include="gc\GCScope.h" />
-    <ClInclude Include="gc\GCStopFlag.h" />
+    <ClInclude Include="gc\GCStopTheWorld.h" />
+    <ClInclude Include="gc\GCSweepThread.h" />
+    <ClInclude Include="gc\GCThread.h" />
     <ClInclude Include="gc\GCThreadState.h" />
     <ClInclude Include="gc\GCUnsafeScope.h" />
     <ClInclude Include="gc\GCVisitor.h" />

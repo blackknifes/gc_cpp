@@ -1,13 +1,13 @@
-#ifndef __GCSTOPFLAG_H__
-#define __GCSTOPFLAG_H__
+#ifndef __GCSTOPTHEWORLD_H__
+#define __GCSTOPTHEWORLD_H__
 #include "GCLocker.h"
 #include "GCWaiter.h"
 
-class GCStopFlag
+class GCStopTheWorld
 {
 public:
-    GCStopFlag();
-	
+    GCStopTheWorld();
+
     void lock() const;
     void unlock() const;
 
@@ -19,6 +19,7 @@ public:
     void resume() const;
 
     bool isStop() const;
+
 private:
     mutable bool m_stopRequested;
     GCLocker m_locker;

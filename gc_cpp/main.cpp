@@ -39,11 +39,11 @@ public:
     Test()
     {
         uint32_t count = ++s_count;
-        if (count % 20480 == 0) printf("object count: %u\n", count);
+        if (count % 2048 == 0) printf("object count: %u\n", count);
     }
     ~Test()
     {
-        --s_count;
+        if (--s_count == 0) printf("all clean *******************************\n");
     }
 
     std::vector<GCPtr<TestChild>> m_children;
@@ -57,12 +57,12 @@ public:
 TestChild::TestChild(GCPtr<Test> pTest) : m_child(pTest)
 {
     uint32_t count = ++s_count;
-    if (count % 20480 == 0) printf("object count: %u\n", count);
+    if (count % 2048 == 0) printf("object count: %u\n", count);
 }
 
 TestChild::~TestChild()
 {
-    --s_count;
+    if (--s_count == 0) printf("all clean *******************************\n");
 }
 
 void TestChild::gcTrace(GCVisitor* visitor)
@@ -81,9 +81,9 @@ DWORD CALLBACK ThreadProc(LPVOID ptr)
         GCScope scope;
         locker.lock();
         if (!s_test) s_test = new Test();
+        GCUnsafeScope unsafeScope;
         s_test->m_children.push_back(new TestChild(s_test));
-        if (s_test->m_children.size() % 10240 == 0) 
-            s_test = nullptr;
+        if (s_test->m_children.size() % 10240 == 0) s_test = nullptr;
         locker.unlock();
     }
 
@@ -101,38 +101,24 @@ void test()
     for (size_t i = 0; i < TEST_COUNT; ++i)
         hThreads[i] = CreateThread(nullptr, 10240, ThreadProc, &test, 0, nullptr);
 
-    for (size_t i = 0; i < 2000; ++i)
-    {
-        DWORD time = GetTickCount();
-        manager.stopWorld();
-        manager.markSweep();
-        manager.resumeWorld();
-        printf("%u, %u ms\n", s_count.load(), GetTickCount() - time);
-        manager.lazySweep();
-        Sleep(200);
-    }
+    Sleep(10000);
     runFlag = false;
     for (size_t i = 0; i < TEST_COUNT; ++i)
     {
-        if (WaitForSingleObject(hThreads[i], INFINITE) != WAIT_OBJECT_0) printf("wait fail\n");
+        WaitForSingleObject(hThreads[i], INFINITE);
         CloseHandle(hThreads[i]);
     }
     test = nullptr;
-    DWORD time = GetTickCount();
-    manager.stopWorld();
-    manager.markSweep();
-    manager.resumeWorld();
-    printf("%u, %u ms\n", s_count.load(), GetTickCount() - time);
-    manager.lazySweep();
-    printf("%u\n", s_count.load());
 }
 
 int main()
 {
-    for (size_t i = 0; i < 1; ++i)
+    for (size_t i = 0; i < 10; ++i)
     {
         system("cls");
         test();
+        printf("count: %u\n", s_count.load());
+        if (s_count != 0) _CrtDbgBreak();
     }
 
     return 0;

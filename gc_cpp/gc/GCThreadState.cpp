@@ -21,21 +21,29 @@ GCThreadState::GCThreadState()
     m_scope = nullptr;
     s_threadState = this;
     m_safePoint = true;
-    m_gcStopFlag = GCManager::GetGlobal()->getStopFlag();
-    m_hThread = GetCurrentThread();
+    m_stopTheWorld = GCManager::GetGlobal()->getStopFlag();
+    DuplicateHandle(GetCurrentProcess(),
+                    GetCurrentThread(),
+                    GetCurrentProcess(),
+                    &m_hThread,
+                    0,
+                    FALSE,
+                    DUPLICATE_SAME_ACCESS);
+    m_threadId = GetCurrentThreadId();
 
     GCManager::GetGlobal()->addThreadState(this);
 }
 
 GCThreadState::~GCThreadState()
 {
+    if (m_hThread) CloseHandle(m_hThread);
     s_threadState = nullptr;
     GCManager::GetGlobal()->removeThreadState(this);
 }
 
 DWORD GCThreadState::getThreadId() const
 {
-    return GetThreadId(m_hThread);
+    return m_threadId;
 }
 
 void GCThreadState::enterSafePoint()
@@ -46,23 +54,22 @@ void GCThreadState::enterSafePoint()
 void GCThreadState::leaveSafePoint()
 {
     m_safePoint = false;
-    if (m_gcStopFlag->isStop())
+    if (m_stopTheWorld->isStop())
     {
         //加锁，并进入暂停流程
-        m_gcStopFlag->lock();
+        m_stopTheWorld->lock();
         // gc已完成，忽略本次stw请求
-        if (!m_gcStopFlag->isStop())
+        if (!m_stopTheWorld->isStop())
         {  //加锁后再次检查请求标记，如果已经退出gc流程，则直接退出
-            m_gcStopFlag->unlock();
+            m_stopTheWorld->unlock();
             return;
         }
         m_safePoint = true;
         //先恢复变量，然后进入等待，保证等待完成后，变量被初始化
-        m_gcStopFlag->wait();
+        m_stopTheWorld->wait();
         m_safePoint = false;
         //退出安全点
-        m_gcStopFlag->unlock();
-        destroyGarbage();
+        m_stopTheWorld->unlock();
     }
 }
 
@@ -72,9 +79,9 @@ void GCThreadState::waitEnterSafePoint()
     //设置安全点等待器
     do
     {
-        m_gcStopFlag->lock();
+        m_stopTheWorld->lock();
         result = m_safePoint;
-        m_gcStopFlag->unlock();
+        m_stopTheWorld->unlock();
         if (!result) SwitchToThread();
     }
     while (!result);
@@ -88,27 +95,6 @@ void GCThreadState::addGarbage(GarbageCollected* pGarbage)
 bool GCThreadState::isOnSafePoint() const
 {
     return m_safePoint;
-}
-
-void GCThreadState::destroyGarbage()
-{
-    auto itor = m_garbages.begin();
-    while (itor != m_garbages.end())
-    {
-        GarbageCollected* pGarbage = *itor;
-        if (!pGarbage->isGcMarked())
-        {
-            m_delayDestroy.push_back(*itor);
-            itor = m_garbages.erase(itor);
-        }
-        else
-        {
-            pGarbage->gcUnmark();
-            ++itor;
-        }
-    }
-    for (GarbageCollected* pObject : m_delayDestroy) delete pObject;
-    m_delayDestroy.clear();
 }
 
 void GCThreadState::enterScope(GCScope* pScope)
