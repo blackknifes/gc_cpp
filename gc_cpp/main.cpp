@@ -39,7 +39,7 @@ public:
     Test()
     {
         uint32_t count = ++s_count;
-        if (count % 2048 == 0) printf("object count: %u\n", count);
+        //if (count % 2048 == 0) printf("object count: %u\n", count);
     }
     ~Test()
     {
@@ -57,7 +57,7 @@ public:
 TestChild::TestChild(GCPtr<Test> pTest) : m_child(pTest)
 {
     uint32_t count = ++s_count;
-    if (count % 2048 == 0) printf("object count: %u\n", count);
+    //if (count % 2048 == 0) printf("object count: %u\n", count);
 }
 
 TestChild::~TestChild()
@@ -81,8 +81,10 @@ DWORD CALLBACK ThreadProc(LPVOID ptr)
         GCScope scope;
         locker.lock();
         if (!s_test) s_test = new Test();
-        GCUnsafeScope unsafeScope;
-        s_test->m_children.push_back(new TestChild(s_test));
+        {
+            GCUnsafeScope unsafeScope;
+            s_test->m_children.push_back(new TestChild(s_test));
+        }
         if (s_test->m_children.size() % 10240 == 0) s_test = nullptr;
         locker.unlock();
     }
@@ -94,6 +96,12 @@ void test()
 {
     runFlag = true;
     GCManager manager;
+    auto pSettings = manager.getSettings();
+    pSettings->setVerbose(true);
+    pSettings->setGCPeriod(30000);
+    pSettings->setEdenThreshold(16384);
+    pSettings->setSurvisorThreshold(102400);
+
     GCPersist<Test> test;
     HANDLE hThreads[TEST_COUNT];
 

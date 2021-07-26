@@ -14,7 +14,7 @@ public:
 
     void setStop();
 
-    void gc();
+    void gc(GCManager::GCType gcType = GCManager::GC_MINOR);
 
 private:
     void doMark();
@@ -25,5 +25,6 @@ private:
 
     bool m_needGC;
     bool m_runFlag;
+    GCManager::GCType m_gcType;
 };
 #endif

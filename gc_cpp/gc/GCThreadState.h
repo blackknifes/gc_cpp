@@ -52,7 +52,6 @@ private:
     GCScope* m_scope;
 
     std::list<GarbageCollected*> m_garbages;        //等待收集的垃圾
-    std::vector<GarbageCollected*> m_delayDestroy;  //延迟销毁
     std::atomic<bool> m_safePoint;
 };
 #endif

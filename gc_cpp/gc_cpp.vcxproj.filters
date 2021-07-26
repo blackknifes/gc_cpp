@@ -54,6 +54,12 @@
     <ClCompile Include="gc\GCSweepThread.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="gc\GCSettings.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gc\GCTimer.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gc\GarbageCollected.h">
@@ -96,6 +102,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc\GCSweepThread.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\GCSettings.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\GCTimer.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

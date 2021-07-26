@@ -2,6 +2,7 @@
 
 #include "GCMarkThread.h"
 #include "GCSweepThread.h"
+#include "GCTimer.h"
 #include "GCVisitor.h"
 
 namespace
@@ -17,6 +18,7 @@ GCManager* GCManager::GetGlobal()
 GCManager::GCManager()
 {
     s_manager = this;
+    m_settings = new GCSettings();
     m_markThread = new GCMarkThread(this);
     m_sweepThread = new GCSweepThread();
     m_markThread->start(0x10000);
@@ -26,6 +28,7 @@ GCManager::GCManager()
 GCManager::~GCManager()
 {
     waitFinish();
+    delete m_settings;
     delete m_markThread;
     delete m_sweepThread;
     s_manager = nullptr;
@@ -55,17 +58,29 @@ void GCManager::addThreadState(GCThreadState* state)
 void GCManager::removeThreadState(GCThreadState* state)
 {
     m_locker.lock();
-    m_garbages.insert(m_garbages.end(), state->m_garbages.begin(), state->m_garbages.end());
+    m_edenList.insert(m_edenList.end(), state->m_garbages.begin(), state->m_garbages.end());
     m_threads.erase(state->getThreadId());
     m_locker.unlock();
 }
 
-void GCManager::gc()
+void GCManager::gc(GCType gcType /*= GC_MINOR*/)
 {
-    m_markThread->gc();
+    m_markThread->gc(gcType);
 }
 
 void GCManager::stopWorld()
+{
+    if (m_settings->isVerbose())
+    {
+        GCTimer timer;
+        stopWorldPrivate();
+        printf("%s: %lld ms\n", __FUNCTION__, timer.getMilliSeconds());
+    }
+    else
+        stopWorldPrivate();
+}
+
+void GCManager::stopWorldPrivate()
 {
     m_locker.lock();
     m_stopTheWorld.pause();
@@ -81,6 +96,18 @@ void GCManager::resumeWorld()
     m_stopTheWorld.unlock();
 }
 
+void GCManager::mark(GCType gcType /*= GC_MINOR*/)
+{
+    if (m_settings->isVerbose())
+    {
+        GCTimer timer;
+        markPrivate(gcType);
+        printf("%s: %lld ms\n", __FUNCTION__, timer.getMilliSeconds());
+    }
+    else
+        markPrivate(gcType);
+}
+
 void GCManager::lazySweep()
 {
     m_locker.lock();
@@ -93,7 +120,7 @@ void GCManager::lazySweep()
 
 void GCManager::waitFinish()
 {
-    gc();
+    gc(GC_FULL);
     stopMarkThread();
     GCThread* threads[] = {m_markThread, m_sweepThread};
     GCThread::JoinAll(threads, sizeof(threads) / sizeof(threads[0]));
@@ -110,9 +137,12 @@ void GCManager::printNumberOfSafePointThread() const
     m_locker.unlock();
 }
 
-void GCManager::mark()
+void GCManager::markPrivate(GCType markType)
 {
     GCVisitor visitor;
+    GCVisitorCounted visitorCounted;
+    GCVisitor* pVisitor = m_settings->isVerbose() ? &visitorCounted : &visitor;
+
     m_locker.lock();
     //扫描所有线程所持根节点以及persist节点
     for (const auto& item : m_threads)
@@ -121,13 +151,13 @@ void GCManager::mark()
         for (const auto& item : pThreadState->m_roots)
         {
             GarbageCollected* pObject = item.second(*item.first);
-            visitor.visit(pObject);
+            pVisitor->visit(pObject);
         }
 
         GCScope* pScope = pThreadState->getScope();
         while (pScope)
         {
-            pScope->visit(&visitor);
+            pScope->visit(pVisitor);
             pScope = pScope->pre();
         }
     }
@@ -136,7 +166,7 @@ void GCManager::mark()
     for (const auto& item : m_roots)
     {
         GarbageCollected* pObject = item.second(*item.first);
-        visitor.visit(pObject);
+        pVisitor->visit(pObject);
     }
 
     //处理所有线程所持垃圾堆
@@ -144,41 +174,32 @@ void GCManager::mark()
     {
         GCThreadState* pThreadState = item.second;
 
-        auto itor = pThreadState->m_garbages.begin();
-        while (itor != pThreadState->m_garbages.end())
-        {
-            GarbageCollected* pGarbage = *itor;
-            if (!pGarbage->isGcMarked())
-            {  //未被标记，加入延迟清理列表
-                itor = pThreadState->m_garbages.erase(itor);
-                m_willLazySweep.push_back(pGarbage);
-            }
-            else
-            {
-                //已被标记，清理标记
-                pGarbage->gcUnmark();
-                ++itor;
-            }
-        }
+        m_edenList.insert(m_edenList.end(),
+                          pThreadState->m_garbages.begin(),
+                          pThreadState->m_garbages.end());
+        pThreadState->m_garbages.clear();
     }
 
-    //处理全局垃圾堆
-    auto itor = m_garbages.begin();
-    while (itor != m_garbages.end())
+    if (markType == GC_FULL)
     {
-        GarbageCollected* pGarbage = *itor;
-        if (!pGarbage->isGcMarked())
+        checkSweepOld();
+        checkSweepSurvivor(SIZE_MAX);
+        checkSweepEden();
+    }
+    else
+    {
+        size_t count = m_survivorList.size();
+        checkSweepEden();
+        if (m_survivorList.size() > m_settings->getSurvisorThreshold())
         {
-            itor = m_garbages.erase(itor);
-            m_willLazySweep.push_back(pGarbage);
-        }
-        else
-        {
-            pGarbage->gcUnmark();
-            ++itor;
+            checkSweepOld();
+            checkSweepSurvivor(count);
         }
     }
+    m_edenCount = m_edenList.size();
     m_locker.unlock();
+
+    if (m_settings->isVerbose()) printf("mark count: %zu\n", visitorCounted.getVisitCount());
 }
 
 const GCStopTheWorld* GCManager::getStopFlag() const
@@ -196,6 +217,16 @@ void GCManager::stopSweepThread()
     m_sweepThread->setStop();
 }
 
+GCSettings* GCManager::getSettings() const
+{
+    return m_settings;
+}
+
+void GCManager::addEden()
+{
+    if (++m_edenCount >= m_settings->getEdenThreshold()) gc();
+}
+
 void GCManager::addRoot(void** ppAddress, PFN_Cast cast)
 {
     m_locker.lock();
@@ -209,4 +240,78 @@ void GCManager::removeRoot(void** ppAddress)
     auto itor = m_roots.find(ppAddress);
     if (itor != m_roots.end()) m_roots.erase(itor);
     m_locker.unlock();
+}
+
+void GCManager::checkSweepEden()
+{  //年轻代标记
+    auto itor = m_edenList.begin();
+    while (itor != m_edenList.end())
+    {
+        GarbageCollected* pGarbage = *itor;
+        if (!pGarbage->isGcMarked())
+        {  //未被标记，加入延迟清理列表
+            itor = m_edenList.erase(itor);
+            m_willLazySweep.push_back(pGarbage);
+        }
+        else
+        {
+            //已被标记，清理标记
+            pGarbage->addGCAge();
+            pGarbage->gcUnmark();
+            ++itor;
+            m_survivorList.push_back(pGarbage);
+        }
+    }
+    m_edenList.clear();
+}
+
+void GCManager::checkSweepSurvivor(size_t count)
+{
+    //中年代标记
+    size_t i = 0;
+    auto itor = m_survivorList.begin();
+    while (itor != m_survivorList.end() && i < count)
+    {
+        ++i;
+        GarbageCollected* pGarbage = *itor;
+        if (!pGarbage->isGcMarked())
+        {  //未被标记，加入延迟清理列表
+            itor = m_survivorList.erase(itor);
+            m_willLazySweep.push_back(pGarbage);
+        }
+        else
+        {
+            //已被标记，清理标记
+            pGarbage->gcUnmark();
+            pGarbage->addGCAge();
+            if (pGarbage->getGCAge() >= 15)
+            {
+                itor = m_survivorList.erase(itor);
+                m_oldList.push_back(pGarbage);
+            }
+            else
+                ++itor;
+        }
+    }
+}
+
+void GCManager::checkSweepOld()
+{
+    //年轻代标记
+    auto itor = m_oldList.begin();
+    while (itor != m_oldList.end())
+    {
+        GarbageCollected* pGarbage = *itor;
+        if (!pGarbage->isGcMarked())
+        {  //未被标记，加入延迟清理列表
+            itor = m_oldList.erase(itor);
+            m_willLazySweep.push_back(pGarbage);
+        }
+        else
+        {
+            //已被标记，清理标记
+            pGarbage->gcUnmark();
+            ++itor;
+        }
+    }
 }

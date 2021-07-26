@@ -4,7 +4,7 @@
 #include "GCScope.h"
 #include "GCThreadState.h"
 
-GarbageCollected::GarbageCollected() : m_mark(false)
+GarbageCollected::GarbageCollected() : m_gcValue(0)
 {
     GCThreadState* pThreadState = GCThreadState::GetCurrent();
     GCScope* pScope = GCScope::GetCurrent();
@@ -12,11 +12,10 @@ GarbageCollected::GarbageCollected() : m_mark(false)
     pThreadState->addGarbage(this);
     if (pScope) pScope->addObject(this);
     pThreadState->enterSafePoint();
+    GCManager::GetGlobal()->addEden();
 }
 
-GarbageCollected::~GarbageCollected()
-{
-}
+GarbageCollected::~GarbageCollected() {}
 
 void GarbageCollected::gcTrace(GCVisitor* visitor) {}
 
@@ -27,15 +26,25 @@ GarbageCollected* GarbageCollected::getObjectPointer() const
 
 void GarbageCollected::gcMark() const
 {
-    m_mark = true;
+    m_gcValue |= kMarkMask;
 }
 
 void GarbageCollected::gcUnmark() const
 {
-    m_mark = false;
+    m_gcValue &= ~kMarkMask;
 }
 
 bool GarbageCollected::isGcMarked() const
 {
-    return m_mark;
+    return (m_gcValue & kMarkMask) != 0;
+}
+
+void GarbageCollected::addGCAge() const
+{
+    ++m_gcValue;
+}
+
+size_t GarbageCollected::getGCAge() const
+{
+    return m_gcValue & kAgeMask;
 }

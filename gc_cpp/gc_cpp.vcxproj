@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="gc\GCSettings.cpp" />
     <ClCompile Include="gc\GarbageCollected.cpp" />
     <ClCompile Include="gc\GCLocker.cpp" />
     <ClCompile Include="gc\GCManager.cpp" />
@@ -164,12 +165,14 @@
     <ClCompile Include="gc\GCSweepThread.cpp" />
     <ClCompile Include="gc\GCThread.cpp" />
     <ClCompile Include="gc\GCThreadState.cpp" />
+    <ClCompile Include="gc\GCTimer.cpp" />
     <ClCompile Include="gc\GCUnsafeScope.cpp" />
     <ClCompile Include="gc\GCVisitor.cpp" />
     <ClCompile Include="gc\GCWaiter.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="gc\GCSettings.h" />
     <ClInclude Include="gc\GarbageCollected.h" />
     <ClInclude Include="gc\GCLocker.h" />
     <ClInclude Include="gc\GCManager.h" />
@@ -181,6 +184,7 @@
     <ClInclude Include="gc\GCSweepThread.h" />
     <ClInclude Include="gc\GCThread.h" />
     <ClInclude Include="gc\GCThreadState.h" />
+    <ClInclude Include="gc\GCTimer.h" />
     <ClInclude Include="gc\GCUnsafeScope.h" />
     <ClInclude Include="gc\GCVisitor.h" />
     <ClInclude Include="gc\GCWaiter.h" />

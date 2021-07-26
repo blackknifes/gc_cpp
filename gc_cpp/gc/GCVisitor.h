@@ -1,5 +1,7 @@
 #ifndef __GCVISITOR_H__
 #define __GCVISITOR_H__
+#include <atomic>
+#include <chrono>
 #include <deque>
 #include <list>
 #include <map>
@@ -102,5 +104,18 @@ public:
             visit(itor->second);
         }
     }
+};
+
+class GCVisitorCounted : public GCVisitor
+{
+public:
+    GCVisitorCounted();
+    ~GCVisitorCounted();
+
+    void visit(GarbageCollected* pGarbage) override;
+    size_t getVisitCount() const;
+
+private:
+    size_t m_counter;
 };
 #endif
