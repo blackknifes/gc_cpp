@@ -99,8 +99,8 @@ void test()
     auto pSettings = manager.getSettings();
     pSettings->setVerbose(true);
     pSettings->setGCPeriod(30000);
-    pSettings->setEdenThreshold(16384);
-    pSettings->setSurvisorThreshold(102400);
+    pSettings->setEdenThreshold(2 * 1024 * 1024);
+    pSettings->setSurvisorThreshold(32 * 1024 * 1024);
 
     GCPersist<Test> test;
     HANDLE hThreads[TEST_COUNT];
@@ -108,7 +108,7 @@ void test()
     printf("∆Ù∂Ø≤‚ ‘\n");
     for (size_t i = 0; i < TEST_COUNT; ++i)
         hThreads[i] = CreateThread(nullptr, 10240, ThreadProc, &test, 0, nullptr);
-
+     
     Sleep(10000);
     runFlag = false;
     for (size_t i = 0; i < TEST_COUNT; ++i)

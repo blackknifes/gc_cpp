@@ -6,8 +6,8 @@
 
 void GCVisitor::visit(GarbageCollected* pGarbage)
 {
-    if (!pGarbage || pGarbage->isGcMarked()) return;
-    pGarbage->gcMark();
+    if (!pGarbage || pGarbage->getGcMarkColor()) return;
+    pGarbage->gcSetColor();
     pGarbage->gcTrace(this);
 }
 

@@ -4,8 +4,9 @@
 #include "GCScope.h"
 #include "GCThreadState.h"
 
-GarbageCollected::GarbageCollected() : m_gcValue(0)
+GarbageCollected::GarbageCollected()
 {
+    memset(&m_gcValue, 0, sizeof(m_gcValue));
     GCThreadState* pThreadState = GCThreadState::GetCurrent();
     GCScope* pScope = GCScope::GetCurrent();
     pThreadState->leaveSafePoint();
@@ -24,27 +25,22 @@ GarbageCollected* GarbageCollected::getObjectPointer() const
     return const_cast<GarbageCollected*>(this);
 }
 
-void GarbageCollected::gcMark() const
+void GarbageCollected::gcSetColor(GCMarkColor color /*= MARK_BLACK*/) const
 {
-    m_gcValue |= kMarkMask;
+    m_gcValue.color = color;
 }
 
-void GarbageCollected::gcUnmark() const
+GCMarkColor GarbageCollected::getGcMarkColor() const
 {
-    m_gcValue &= ~kMarkMask;
-}
-
-bool GarbageCollected::isGcMarked() const
-{
-    return (m_gcValue & kMarkMask) != 0;
+    return m_gcValue.color;
 }
 
 void GarbageCollected::addGCAge() const
 {
-    ++m_gcValue;
+    ++m_gcValue.age;
 }
 
 size_t GarbageCollected::getGCAge() const
 {
-    return m_gcValue & kAgeMask;
+    return m_gcValue.age;
 }

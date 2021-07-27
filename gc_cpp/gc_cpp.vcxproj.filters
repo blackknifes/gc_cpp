@@ -60,6 +60,9 @@
     <ClCompile Include="gc\GCTimer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="gc\GCMemoryPage.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gc\GarbageCollected.h">
@@ -108,6 +111,9 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc\GCTimer.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\GCMemoryPage.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -155,6 +155,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="gc\GCMemoryPage.cpp" />
     <ClCompile Include="gc\GCSettings.cpp" />
     <ClCompile Include="gc\GarbageCollected.cpp" />
     <ClCompile Include="gc\GCLocker.cpp" />
@@ -172,6 +173,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="gc\GCMemoryPage.h" />
     <ClInclude Include="gc\GCSettings.h" />
     <ClInclude Include="gc\GarbageCollected.h" />
     <ClInclude Include="gc\GCLocker.h" />

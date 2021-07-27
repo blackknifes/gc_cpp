@@ -248,7 +248,7 @@ void GCManager::checkSweepEden()
     while (itor != m_edenList.end())
     {
         GarbageCollected* pGarbage = *itor;
-        if (!pGarbage->isGcMarked())
+        if (pGarbage->getGcMarkColor() == GC_MARK_WHITE)
         {  //未被标记，加入延迟清理列表
             itor = m_edenList.erase(itor);
             m_willLazySweep.push_back(pGarbage);
@@ -256,8 +256,8 @@ void GCManager::checkSweepEden()
         else
         {
             //已被标记，清理标记
+            pGarbage->gcSetColor(GC_MARK_WHITE);
             pGarbage->addGCAge();
-            pGarbage->gcUnmark();
             ++itor;
             m_survivorList.push_back(pGarbage);
         }
@@ -274,7 +274,7 @@ void GCManager::checkSweepSurvivor(size_t count)
     {
         ++i;
         GarbageCollected* pGarbage = *itor;
-        if (!pGarbage->isGcMarked())
+        if (pGarbage->getGcMarkColor() == GC_MARK_WHITE)
         {  //未被标记，加入延迟清理列表
             itor = m_survivorList.erase(itor);
             m_willLazySweep.push_back(pGarbage);
@@ -282,7 +282,7 @@ void GCManager::checkSweepSurvivor(size_t count)
         else
         {
             //已被标记，清理标记
-            pGarbage->gcUnmark();
+            pGarbage->gcSetColor(GC_MARK_WHITE);
             pGarbage->addGCAge();
             if (pGarbage->getGCAge() >= 15)
             {
@@ -302,7 +302,7 @@ void GCManager::checkSweepOld()
     while (itor != m_oldList.end())
     {
         GarbageCollected* pGarbage = *itor;
-        if (!pGarbage->isGcMarked())
+        if (pGarbage->getGcMarkColor() == GC_MARK_WHITE)
         {  //未被标记，加入延迟清理列表
             itor = m_oldList.erase(itor);
             m_willLazySweep.push_back(pGarbage);
@@ -310,7 +310,7 @@ void GCManager::checkSweepOld()
         else
         {
             //已被标记，清理标记
-            pGarbage->gcUnmark();
+            pGarbage->gcSetColor(GC_MARK_WHITE);
             ++itor;
         }
     }
