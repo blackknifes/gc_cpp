@@ -99,7 +99,7 @@ void test()
     auto pSettings = manager.getSettings();
     pSettings->setVerbose(true);
     pSettings->setGCPeriod(30000);
-    pSettings->setEdenThreshold(2 * 1024 * 1024);
+    pSettings->setEdenThreshold(0x10000);
     pSettings->setSurvisorThreshold(32 * 1024 * 1024);
 
     GCPersist<Test> test;
