@@ -93,6 +93,12 @@
     <ClCompile Include="gc\heap\GCCardTable.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="gc\platform\PlatformAPI.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gc\template\GCBitArray.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="gc\GarbageCollected.h">
@@ -180,6 +186,12 @@
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc\template\GCTemplate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\platform\PlatformAPI.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\template\GCBitArray.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

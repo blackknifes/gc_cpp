@@ -180,6 +180,8 @@
     <ClCompile Include="gc\heap\GCThreadHeap.cpp" />
     <ClCompile Include="gc\heap\GCMemorySet.cpp" />
     <ClCompile Include="gc\heap\GCSpace.cpp" />
+    <ClCompile Include="gc\platform\PlatformAPI.cpp" />
+    <ClCompile Include="gc\template\GCBitArray.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -211,6 +213,8 @@
     <ClInclude Include="gc\heap\GCType.h" />
     <ClInclude Include="gc\heap\GCMemorySet.h" />
     <ClInclude Include="gc\heap\GCSpace.h" />
+    <ClInclude Include="gc\platform\PlatformAPI.h" />
+    <ClInclude Include="gc\template\GCBitArray.h" />
     <ClInclude Include="gc\template\GCTemplate.h" />
   </ItemGroup>
   <ItemGroup>

@@ -2,6 +2,8 @@
 
 #include <Windows.h>
 
+#include "../platform/PlatformAPI.h"
+
 GCMemoryPageRange::GCMemoryPageRange(GCMemoryPage* pPage, uint8_t* pData, size_t _size)
     : m_page(pPage),
       m_data(pData),
@@ -21,10 +23,10 @@ size_t GCMemoryPageRange::size() const
 
 void GCMemoryPageRange::commit()
 {
-    VirtualAlloc(m_data, m_size, MEM_COMMIT, PAGE_READWRITE);
+    PlatformAPI::MemoryCommit(m_data, m_size);
 }
 
 void GCMemoryPageRange::decommit()
 {
-    VirtualFree(m_data, m_size, MEM_DECOMMIT);
+    PlatformAPI::MemoryDecommit(m_data, m_size);
 }
