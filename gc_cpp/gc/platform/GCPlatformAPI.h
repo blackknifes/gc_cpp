@@ -1,6 +1,8 @@
-#ifndef __PLATFORMAPI_H__
-#define __PLATFORMAPI_H__
+#ifndef __GCPLATFORMAPI_H__
+#define __GCPLATFORMAPI_H__
 #include <stdint.h>
+
+#include "../heap/GCType.h"
 
 struct PlatformTime
 {
@@ -15,16 +17,29 @@ struct PlatformTime
     uint16_t milliseconds;
 };
 
-class PlatformAPI
+class GCPlatformAPI
 {
 public:
+    /**
+     * 初始化主线程
+     * @return
+     */
+    static bool InitMainThread();
+    /**
+     * 清理主线程环境
+     */
+    static void UninitMainThread();
+
+    /** 是否处于主线程 */
+    static bool IsMainThread();
+
+    static GCAddressRange GetCurrentThreadStackRange();
+
     static void* MemoryAllocate(size_t _size);
     static void MemoryFree(void* pData);
 
     static bool MemoryCommit(void* pData, size_t _size);
     static bool MemoryDecommit(void* pData, size_t _size);
-
-    static size_t AlignSize(size_t _size, size_t alignSize);
 
     static int BitSearch(size_t val);
     static int BitSearchReverse(size_t val);
@@ -35,7 +50,9 @@ public:
 
     static PlatformTime ConvertToPlatformTime(uint64_t time);
 
-    /** 
+    static size_t GetHardwareMemorySize();
+
+    /**
      * 格式化为 yyyy-MM-dd hh:mm:ss.ms 标准时间格式
      */
     static void FormatNormalTime(const PlatformTime& platTime, char* buf, size_t bufsize);

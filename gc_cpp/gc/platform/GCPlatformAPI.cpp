@@ -1,7 +1,10 @@
-#include "PlatformAPI.h"
+#include "GCPlatformAPI.h"
 
 #include <Windows.h>
+#include <assert.h>
 #include <stdio.h>
+
+#include "../heap/GCType.h"
 
 namespace
 {
@@ -35,34 +38,66 @@ namespace
         FileTimeToSystemTime(&fileTime, sysTime);
     }
 
+    _NT_TIB* GetTib()
+    {
+#ifdef _M_IX86
+        return (_NT_TIB*)__readfsdword(0x18);
+#elif _M_AMD64
+        return (_NT_TIB*)__readgsqword(0x30);
+#endif
+    }
+
+    GCAddressRange s_mainThreadAddres = {};
 }  // namespace
 
-void* PlatformAPI::MemoryAllocate(size_t _size)
+bool GCPlatformAPI::InitMainThread()
+{
+    s_mainThreadAddres = GetCurrentThreadStackRange();
+    return s_mainThreadAddres.begin && s_mainThreadAddres.end;
+}
+
+void GCPlatformAPI::UninitMainThread()
+{
+    memset(&s_mainThreadAddres, 0, sizeof(s_mainThreadAddres));
+}
+
+bool GCPlatformAPI::IsMainThread()
+{
+    size_t mainStack[1];
+    GCAddress addr = (GCAddress)mainStack;
+    return addr >= s_mainThreadAddres.begin && addr < s_mainThreadAddres.end;
+}
+
+GCAddressRange GCPlatformAPI::GetCurrentThreadStackRange()
+{
+    GCAddressRange range;
+    _NT_TIB* tib = GetTib();
+    range.begin = (GCAddress)tib->StackLimit;
+    range.end = (GCAddress)tib->StackBase;
+    return range;
+}
+
+void* GCPlatformAPI::MemoryAllocate(size_t _size)
 {
     return VirtualAlloc(nullptr, _size, MEM_RESERVE, PAGE_READWRITE);
 }
 
-void PlatformAPI::MemoryFree(void* pData)
+void GCPlatformAPI::MemoryFree(void* pData)
 {
     VirtualFree(pData, 0, MEM_RELEASE);
 }
 
-bool PlatformAPI::MemoryCommit(void* pData, size_t _size)
+bool GCPlatformAPI::MemoryCommit(void* pData, size_t _size)
 {
     return VirtualAlloc(nullptr, _size, MEM_COMMIT, PAGE_READWRITE);
 }
 
-bool PlatformAPI::MemoryDecommit(void* pData, size_t _size)
+bool GCPlatformAPI::MemoryDecommit(void* pData, size_t _size)
 {
     return VirtualFree(pData, _size, MEM_DECOMMIT);
 }
 
-size_t PlatformAPI::AlignSize(size_t _size, size_t alignSize)
-{
-    return ((_size + alignSize - 1) & ~(alignSize - 1));
-}
-
-int PlatformAPI::BitSearch(size_t val)
+int GCPlatformAPI::BitSearch(size_t val)
 {
     DWORD result = 0;
 
@@ -74,7 +109,7 @@ int PlatformAPI::BitSearch(size_t val)
     return (int)result;
 }
 
-int PlatformAPI::BitSearchReverse(size_t val)
+int GCPlatformAPI::BitSearchReverse(size_t val)
 {
     DWORD result = 0;
 #ifdef _WIN64
@@ -85,14 +120,14 @@ int PlatformAPI::BitSearchReverse(size_t val)
     return (int)result;
 }
 
-uint64_t PlatformAPI::CurrentUTFTime()
+uint64_t GCPlatformAPI::CurrentUTFTime()
 {
     SYSTEMTIME sysTime;
     GetSystemTime(&sysTime);
     return SysTimeToUInt64(sysTime);
 }
 
-uint64_t PlatformAPI::UTFToLocalTime(uint64_t time)
+uint64_t GCPlatformAPI::UTFToLocalTime(uint64_t time)
 {
     SYSTEMTIME sysTime;
     SYSTEMTIME localeTime;
@@ -101,7 +136,7 @@ uint64_t PlatformAPI::UTFToLocalTime(uint64_t time)
     return SysTimeToUInt64(localeTime);
 }
 
-uint64_t PlatformAPI::LocalToUTFTime(uint64_t time)
+uint64_t GCPlatformAPI::LocalToUTFTime(uint64_t time)
 {
     SYSTEMTIME sysTime;
     SYSTEMTIME localeTime;
@@ -110,14 +145,21 @@ uint64_t PlatformAPI::LocalToUTFTime(uint64_t time)
     return SysTimeToUInt64(localeTime);
 }
 
-PlatformTime PlatformAPI::ConvertToPlatformTime(uint64_t time)
+PlatformTime GCPlatformAPI::ConvertToPlatformTime(uint64_t time)
 {
     SYSTEMTIME sysTime;
     UInt64ToSysTime(time, &sysTime);
     return reinterpret_cast<const PlatformTime&>(sysTime);
 }
 
-void PlatformAPI::FormatNormalTime(const PlatformTime& platTime, char* buf, size_t bufsize)
+size_t GCPlatformAPI::GetHardwareMemorySize() 
+{
+    MEMORYSTATUS status = {};
+    GlobalMemoryStatus(&status);
+    return status.dwTotalPhys;
+}
+
+void GCPlatformAPI::FormatNormalTime(const PlatformTime& platTime, char* buf, size_t bufsize)
 {
     sprintf_s(buf,
               bufsize,

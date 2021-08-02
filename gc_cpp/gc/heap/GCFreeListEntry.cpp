@@ -2,19 +2,19 @@
 
 #include <assert.h>
 
-#include "../template/GCTemplate.h"
+#include "../template/GCUtils.h"
 
 GCFreeListEntry* GCFreeListEntry::MakeEntry(GCAddress pData)
 {
     GCFreeListEntry* pEntry = (GCFreeListEntry*)pData;
-    GCUtil::Construct(pEntry);
+    GCUtils::Construct(pEntry);
     return pEntry;
 }
 
 GCFreeListEntry* GCFreeListEntry::MakeEntry(GCAddress pData, size_t _size)
 {
     GCFreeListEntry* pEntry = (GCFreeListEntry*)pData;
-    GCUtil::Construct(pEntry, _size);
+    GCUtils::Construct(pEntry, _size);
     return pEntry;
 }
 

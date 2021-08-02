@@ -9,13 +9,9 @@
 class GCSpace
 {
 public:
-    GCSpace();
+    virtual ~GCSpace();
 
-    virtual void* alloc(size_t _size);
-    virtual void dealloc(void* pData);
-
-private:
-    std::vector<GCMemoryPageRange*> m_ranges;
-    GCFreeList* m_list;
+    virtual void* alloc(size_t _size) = 0;
+    virtual void dealloc(void* pData) = 0;
 };
 #endif

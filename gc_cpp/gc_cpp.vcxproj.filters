@@ -93,10 +93,22 @@
     <ClCompile Include="gc\heap\GCCardTable.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="gc\platform\PlatformAPI.cpp">
+    <ClCompile Include="gc\platform\GCPlatformAPI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="gc\template\GCBitArray.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gc\heap\GCMemoryPageAllocator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gc\heap\GCFixedSpace.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gc\template\GCUtils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="gc\heap\GCHeapSettings.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -185,13 +197,22 @@
     <ClInclude Include="gc\heap\GCCardTable.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="gc\template\GCTemplate.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\platform\PlatformAPI.h">
+    <ClInclude Include="gc\platform\GCPlatformAPI.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc\template\GCBitArray.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\heap\GCMemoryPageAllocator.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\template\GCUtils.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\heap\GCFixedSpace.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="gc\heap\GCHeapSettings.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

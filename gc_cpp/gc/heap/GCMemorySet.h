@@ -10,7 +10,16 @@
 class GCMemorySet
 {
 public:
+    static constexpr const size_t npos = size_t(-1);
+
     virtual ~GCMemorySet();
+
+    /**
+     * 获取单位脏块的大小
+     * @return
+     */
+    virtual size_t getDirtyBlockSize() const = 0;
+
     /**
      * 指定集合标记为脏
      * @param addr
@@ -21,11 +30,12 @@ public:
      * 判断指定集合是否为脏
      * @param addr
      */
-    virtual void isDirty(GCAddress addr) const = 0;
-    virtual void isDirty(size_t index) const = 0;
+    virtual bool isDirty(GCAddress addr) const = 0;
+    virtual bool isDirty(size_t index) const = 0;
     /*
      * 获取脏卡
      */
-    virtual void getDirties(std::vector<size_t>& dirtyIndices) const = 0;
+    virtual size_t findDirty(GCAddress addr) const = 0;
+    virtual size_t findDirty(size_t startOff) const = 0;
 };
 #endif

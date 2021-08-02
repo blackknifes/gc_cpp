@@ -2,10 +2,10 @@
 
 #include <Windows.h>
 
-#include "../platform/PlatformAPI.h"
+#include "../platform/GCPlatformAPI.h"
 
-GCMemoryPageRange::GCMemoryPageRange(GCMemoryPage* pPage, uint8_t* pData, size_t _size)
-    : m_page(pPage),
+GCMemoryPageRange::GCMemoryPageRange(GCMemoryPageAllocator* pPage, uint8_t* pData, size_t _size)
+    : m_allocator(pPage),
       m_data(pData),
       m_size(_size)
 {
@@ -23,10 +23,15 @@ size_t GCMemoryPageRange::size() const
 
 void GCMemoryPageRange::commit()
 {
-    PlatformAPI::MemoryCommit(m_data, m_size);
+    GCPlatformAPI::MemoryCommit(m_data, m_size);
 }
 
 void GCMemoryPageRange::decommit()
 {
-    PlatformAPI::MemoryDecommit(m_data, m_size);
+    GCPlatformAPI::MemoryDecommit(m_data, m_size);
+}
+
+GCMemoryPageAllocator* GCMemoryPageRange::getAllocator() const
+{
+    return m_allocator;
 }

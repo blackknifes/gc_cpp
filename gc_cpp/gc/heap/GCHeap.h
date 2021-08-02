@@ -9,9 +9,15 @@
 class GCHeap
 {
 public:
+    static GCHeap* GetHeap();
+    GCHeap();
+    ~GCHeap();
+
+    GCAddress alloc();
+    void dealloc(GCAddress addr);
+
 private:
     std::vector<GCMemoryPage*> m_pages;            //内存页
-    std::vector<GCMemoryPageRange*> m_pageRanges;  //内存页区域
     std::vector<GCThreadHeap*> m_threadHeaps;      //线程堆
 };
 #endif

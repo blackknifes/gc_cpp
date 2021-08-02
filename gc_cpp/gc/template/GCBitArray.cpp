@@ -3,11 +3,12 @@
 #include <Windows.h>
 #include <memory.h>
 
-#include "../platform/PlatformAPI.h"
+#include "../platform/GCPlatformAPI.h"
+#include "GCUtils.h"
 
 GCBitArray::GCBitArray(size_t bitCount)
 {
-    m_bitCount = PlatformAPI::AlignSize(bitCount, kUnitBit);
+    m_bitCount = GCUtils::AlignSize(bitCount, kUnitBit);
     size_t valCount = (m_bitCount >> 3) / sizeof(size_t);
     m_bitArray = new size_t[valCount];
     memset(m_bitArray, 0, valCount * sizeof(size_t));
@@ -28,7 +29,7 @@ void GCBitArray::setFlag(size_t offset, bool val)
         m_bitArray[index] &= ~(size_t(1) << bitOffset);
 }
 
-bool GCBitArray::isFlag(size_t offset)
+bool GCBitArray::testFlag(size_t offset) const
 {
     size_t index = offset >> kSizeTOffsetBit;
     size_t bitOffset = offset & (kUnitBit - 1);
@@ -41,8 +42,7 @@ size_t GCBitArray::searchNextFlag(size_t offset /*= 0*/) const
     size_t bitOffset = offset & (kUnitBit - 1);
     if (bitOffset == 0)
     {
-        int result = PlatformAPI::BitSearch(m_bitArray[index]);
-
+        int result = GCPlatformAPI::BitSearch(m_bitArray[index]);
         if (result >= 0) return index * kUnitBit + result;
         ++index;
     }
@@ -58,7 +58,7 @@ size_t GCBitArray::searchNextFlag(size_t offset /*= 0*/) const
 
     for (size_t i = index; i < getCountOfSizeT(); ++i)
     {
-        int off = PlatformAPI::BitSearch(m_bitArray[i]);
+        int off = GCPlatformAPI::BitSearch(m_bitArray[i]);
         if (off >= 0) return i * kUnitBit + off;
     }
 

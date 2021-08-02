@@ -12,7 +12,8 @@
 #include "gc/GCPtr.h"
 #include "gc/GCScope.h"
 #include "gc/template/GCBitArray.h"
-#include "gc/platform/PlatformAPI.h"
+#include "gc/platform/GCPlatformAPI.h"
+#include <thread>
 
 #define TEST_COUNT 512
 
@@ -124,6 +125,15 @@ void test()
 
 void test2()
 {
+    GCPlatformAPI::InitMainThread();
+
+    assert(GCPlatformAPI::IsMainThread());
+    std::thread tmpThread([]() 
+    {
+        assert(!GCPlatformAPI::IsMainThread());
+    });
+    tmpThread.join();
+
     GCBitArray bitArr(4096);
     bitArr.setFlag(64, true);
     bitArr.setFlag(66, true);
@@ -134,12 +144,12 @@ void test2()
     val = bitArr.searchNextFlag(67);
     assert(val == GCBitArray::npos);
 
-    uint64_t utfTime = PlatformAPI::CurrentUTFTime();
-    PlatformTime platformTime = PlatformAPI::ConvertToPlatformTime(utfTime);
-    uint64_t localTime = PlatformAPI::UTFToLocalTime(utfTime);
-    PlatformTime localPlatTime = PlatformAPI::ConvertToPlatformTime(localTime);
+    uint64_t utfTime = GCPlatformAPI::CurrentUTFTime();
+    PlatformTime platformTime = GCPlatformAPI::ConvertToPlatformTime(utfTime);
+    uint64_t localTime = GCPlatformAPI::UTFToLocalTime(utfTime);
+    PlatformTime localPlatTime = GCPlatformAPI::ConvertToPlatformTime(localTime);
     char buf[1024];
-    PlatformAPI::FormatNormalTime(localPlatTime, buf, 1024);
+    GCPlatformAPI::FormatNormalTime(localPlatTime, buf, 1024);
     printf("%s\n", buf);
 }
 

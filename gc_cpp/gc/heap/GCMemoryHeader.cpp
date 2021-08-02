@@ -19,7 +19,7 @@ void GCMemoryHeader::setColor(GCMarkColor color)
     m_color = color;
 }
 
-GCMarkColor GCMemoryHeader::color() const
+GCMarkColor GCMemoryHeader::getColor() const
 {
     return m_color;
 }
@@ -29,7 +29,7 @@ void GCMemoryHeader::setAge(uint32_t age)
     m_age = age;
 }
 
-uint32_t GCMemoryHeader::age() const
+uint32_t GCMemoryHeader::getAge() const
 {
     return m_age;
 }
@@ -49,7 +49,7 @@ void GCMemoryHeader::setSize(uint32_t _size)
     m_size = _size;
 }
 
-uint32_t GCMemoryHeader::size() const
+uint32_t GCMemoryHeader::getSize() const
 {
     return m_size;
 }

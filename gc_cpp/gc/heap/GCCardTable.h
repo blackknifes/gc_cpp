@@ -1,5 +1,6 @@
 #ifndef __GCCARDTABLE_H__
 #define __GCCARDTABLE_H__
+#include "../template/GCBitArray.h"
 #include "GCMemorySet.h"
 
 /**
@@ -8,21 +9,20 @@
 class GCCardTable : public GCMemorySet
 {
 public:
-    static constexpr const size_t kDefaultCardSize = 512;  //默认单卡为512B
+    static constexpr const size_t kCardSize = 512;  //默认单卡为512B
 
-    GCCardTable(size_t cardSize);
+    GCCardTable(GCAddress startAddr, size_t numOfCards);
 
     void setDirty(GCAddress addr) override;
-
     void setDirty(size_t index) override;
-
-    void isDirty(GCAddress addr) const override;
-
-    void isDirty(size_t index) const override;
-
-    void getDirties(std::vector<size_t>& dirtyIndices) const override;
+    bool isDirty(GCAddress addr) const override;
+    bool isDirty(size_t index) const override;
+    size_t findDirty(GCAddress addr) const override;
+    size_t findDirty(size_t startOff) const override;
+    size_t getDirtyBlockSize() const override;
 
 private:
-    const size_t m_cardSize;  //单卡尺寸
+    GCBitArray m_bitArray;
+    GCAddress m_startAddr;
 };
 #endif

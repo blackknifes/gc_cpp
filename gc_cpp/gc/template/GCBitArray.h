@@ -13,7 +13,7 @@ public:
     ~GCBitArray();
 
     void setFlag(size_t offset, bool val);
-    bool isFlag(size_t offset);
+    bool testFlag(size_t offset) const;
 
     size_t searchNextFlag(size_t offset = 0) const;
 

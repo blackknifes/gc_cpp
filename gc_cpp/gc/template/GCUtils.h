@@ -1,8 +1,8 @@
-#ifndef __GCTEMPLATE_H__
-#define __GCTEMPLATE_H__
+#ifndef __GCUTILS_H__
+#define __GCUTILS_H__
 #include <xutility>
 
-class GCUtil
+class GCUtils
 {
 public:
     template<typename _Ty, typename... _argsTy>
@@ -15,5 +15,7 @@ public:
     {
         ptr->~_Ty();
     }
+
+    static size_t AlignSize(size_t _size, size_t alignSize);
 };
 #endif

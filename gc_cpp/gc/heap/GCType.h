@@ -3,4 +3,10 @@
 #include <stdint.h>
 
 typedef uint8_t* GCAddress;
+
+struct GCAddressRange
+{
+    GCAddress begin;
+    GCAddress end;
+};
 #endif
