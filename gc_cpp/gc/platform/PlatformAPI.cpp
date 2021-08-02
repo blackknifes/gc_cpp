@@ -1,6 +1,7 @@
 #include "PlatformAPI.h"
 
 #include <Windows.h>
+#include <stdio.h>
 
 namespace
 {
@@ -114,4 +115,18 @@ PlatformTime PlatformAPI::ConvertToPlatformTime(uint64_t time)
     SYSTEMTIME sysTime;
     UInt64ToSysTime(time, &sysTime);
     return reinterpret_cast<const PlatformTime&>(sysTime);
+}
+
+void PlatformAPI::FormatNormalTime(const PlatformTime& platTime, char* buf, size_t bufsize)
+{
+    sprintf_s(buf,
+              bufsize,
+              "%04u-%02u-%02u %02u:%02u:%02u.%u",
+              platTime.years,
+              platTime.months,
+              platTime.daysOfMohth,
+              platTime.hours,
+              platTime.minitues,
+              platTime.seconds,
+              platTime.milliseconds);
 }

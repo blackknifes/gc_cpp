@@ -12,6 +12,7 @@
 #include "gc/GCPtr.h"
 #include "gc/GCScope.h"
 #include "gc/template/GCBitArray.h"
+#include "gc/platform/PlatformAPI.h"
 
 #define TEST_COUNT 512
 
@@ -132,6 +133,14 @@ void test2()
     assert(val == 66);
     val = bitArr.searchNextFlag(67);
     assert(val == GCBitArray::npos);
+
+    uint64_t utfTime = PlatformAPI::CurrentUTFTime();
+    PlatformTime platformTime = PlatformAPI::ConvertToPlatformTime(utfTime);
+    uint64_t localTime = PlatformAPI::UTFToLocalTime(utfTime);
+    PlatformTime localPlatTime = PlatformAPI::ConvertToPlatformTime(localTime);
+    char buf[1024];
+    PlatformAPI::FormatNormalTime(localPlatTime, buf, 1024);
+    printf("%s\n", buf);
 }
 
 int main()

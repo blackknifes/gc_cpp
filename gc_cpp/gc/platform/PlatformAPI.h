@@ -34,5 +34,10 @@ public:
     static uint64_t LocalToUTFTime(uint64_t time);
 
     static PlatformTime ConvertToPlatformTime(uint64_t time);
+
+    /** 
+     * 格式化为 yyyy-MM-dd hh:mm:ss.ms 标准时间格式
+     */
+    static void FormatNormalTime(const PlatformTime& platTime, char* buf, size_t bufsize);
 };
 #endif
