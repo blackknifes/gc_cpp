@@ -1,11 +1,13 @@
 #ifndef __GCBITARRAY_H__
 #define __GCBITARRAY_H__
+#include <stdint.h>
 
 class GCBitArray
 {
 public:
     static constexpr const size_t kUnitBit = sizeof(size_t) * 8;
-    static constexpr const size_t kOffsetBit = sizeof(size_t) == 8 ? 6 : 5;
+    static constexpr const size_t kSizeTOffsetBit = sizeof(size_t) == 8 ? 6 : 5;
+    static constexpr const size_t npos = SIZE_MAX;
 
     GCBitArray(size_t bitCount);
     ~GCBitArray();

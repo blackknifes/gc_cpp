@@ -1,4 +1,5 @@
 #include <Windows.h>
+#include <assert.h>
 #include <conio.h>
 #include <math.h>
 #include <stdint.h>
@@ -10,6 +11,7 @@
 #include "gc/GCPersist.h"
 #include "gc/GCPtr.h"
 #include "gc/GCScope.h"
+#include "gc/template/GCBitArray.h"
 
 #define TEST_COUNT 512
 
@@ -39,7 +41,7 @@ public:
     Test()
     {
         uint32_t count = ++s_count;
-        //if (count % 2048 == 0) printf("object count: %u\n", count);
+        // if (count % 2048 == 0) printf("object count: %u\n", count);
     }
     ~Test()
     {
@@ -57,7 +59,7 @@ public:
 TestChild::TestChild(GCPtr<Test> pTest) : m_child(pTest)
 {
     uint32_t count = ++s_count;
-    //if (count % 2048 == 0) printf("object count: %u\n", count);
+    // if (count % 2048 == 0) printf("object count: %u\n", count);
 }
 
 TestChild::~TestChild()
@@ -108,7 +110,7 @@ void test()
     printf("∆Ù∂Ø≤‚ ‘\n");
     for (size_t i = 0; i < TEST_COUNT; ++i)
         hThreads[i] = CreateThread(nullptr, 10240, ThreadProc, &test, 0, nullptr);
-     
+
     Sleep(10000);
     runFlag = false;
     for (size_t i = 0; i < TEST_COUNT; ++i)
@@ -119,8 +121,23 @@ void test()
     test = nullptr;
 }
 
+void test2()
+{
+    GCBitArray bitArr(4096);
+    bitArr.setFlag(64, true);
+    bitArr.setFlag(66, true);
+    size_t val = bitArr.searchNextFlag();
+    assert(val == 64);
+    val = bitArr.searchNextFlag(65);
+    assert(val == 66);
+    val = bitArr.searchNextFlag(67);
+    assert(val == GCBitArray::npos);
+}
+
 int main()
 {
+    test2();
+    return 0;
     for (size_t i = 0; i < 10; ++i)
     {
         system("cls");

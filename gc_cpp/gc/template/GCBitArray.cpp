@@ -7,8 +7,10 @@
 
 GCBitArray::GCBitArray(size_t bitCount)
 {
-    size_t valCount = (PlatformAPI::AlignSize(bitCount, kUnitBit) >> 3) / sizeof(size_t);
+    m_bitCount = PlatformAPI::AlignSize(bitCount, kUnitBit);
+    size_t valCount = (m_bitCount >> 3) / sizeof(size_t);
     m_bitArray = new size_t[valCount];
+    memset(m_bitArray, 0, valCount * sizeof(size_t));
 }
 
 GCBitArray::~GCBitArray()
@@ -18,28 +20,28 @@ GCBitArray::~GCBitArray()
 
 void GCBitArray::setFlag(size_t offset, bool val)
 {
-    size_t index = offset >> kUnitBit;
-    size_t bitOffset = kUnitBit & (kUnitBit - 1);
+    size_t index = offset >> kSizeTOffsetBit;
+    size_t bitOffset = offset & (kUnitBit - 1);
     if (val)
-        m_bitArray[index] |= (1 << bitOffset);
+        m_bitArray[index] |= (size_t(1) << bitOffset);
     else
-        m_bitArray[index] &= ~(1 << bitOffset);
+        m_bitArray[index] &= ~(size_t(1) << bitOffset);
 }
 
 bool GCBitArray::isFlag(size_t offset)
 {
-    size_t index = offset >> 3;
-    size_t bitOffset = kUnitBit & (kUnitBit - 1);
-    return m_bitArray[index] &= (1 << bitOffset);
+    size_t index = offset >> kSizeTOffsetBit;
+    size_t bitOffset = offset & (kUnitBit - 1);
+    return (m_bitArray[index] & (size_t(1) << bitOffset)) != 0;
 }
 
 size_t GCBitArray::searchNextFlag(size_t offset /*= 0*/) const
 {
-    size_t index = offset >> 3;
-    size_t bitOffset = kUnitBit & (kUnitBit - 1);
+    size_t index = offset >> kSizeTOffsetBit;
+    size_t bitOffset = offset & (kUnitBit - 1);
     if (bitOffset == 0)
     {
-        int result = PlatformAPI::BitSearchReverse(m_bitArray[index]);
+        int result = PlatformAPI::BitSearch(m_bitArray[index]);
 
         if (result >= 0) return index * kUnitBit + result;
         ++index;
@@ -49,16 +51,18 @@ size_t GCBitArray::searchNextFlag(size_t offset /*= 0*/) const
         size_t val = m_bitArray[index];
         for (size_t i = bitOffset; i < kUnitBit; ++i)
         {
-            if ((val & 1 << i) != 0) return index * kUnitBit + i;
+            if ((val & (size_t(1) << i)) != 0) return index * kUnitBit + i;
         }
         ++index;
     }
 
     for (size_t i = index; i < getCountOfSizeT(); ++i)
     {
+        int off = PlatformAPI::BitSearch(m_bitArray[i]);
+        if (off >= 0) return i * kUnitBit + off;
     }
 
-    return index;
+    return npos;
 }
 
 void GCBitArray::clear()
@@ -68,5 +72,5 @@ void GCBitArray::clear()
 
 size_t GCBitArray::getCountOfSizeT() const
 {
-    return m_bitCount >> kOffsetBit;
+    return m_bitCount >> kSizeTOffsetBit;
 }
