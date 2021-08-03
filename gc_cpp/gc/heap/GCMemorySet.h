@@ -2,7 +2,7 @@
 #define __GCMEMORYSET_H__
 #include <vector>
 
-#include "GCType.h"
+#include "../GCType.h"
 
 /**
  * º«“‰ºØ

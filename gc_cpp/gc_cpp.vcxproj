@@ -156,11 +156,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="gc\heap\GCCardTable.cpp" />
+    <ClCompile Include="gc\heap\GCFixedMemoryRangeSliced.cpp" />
     <ClCompile Include="gc\heap\GCFixedSpace.cpp" />
-    <ClCompile Include="gc\heap\GCFreeList.cpp" />
     <ClCompile Include="gc\heap\GCFreeListEntry.cpp" />
     <ClCompile Include="gc\heap\GCHeap.cpp" />
     <ClCompile Include="gc\heap\GCHeapSettings.cpp" />
+    <ClCompile Include="gc\heap\GCLargeMemoryRangeSliced.cpp" />
     <ClCompile Include="gc\heap\GCMemoryEntry.cpp" />
     <ClCompile Include="gc\heap\GCMemoryHeader.cpp" />
     <ClCompile Include="gc\heap\GCMemoryPage.cpp" />
@@ -178,8 +179,9 @@
     <ClCompile Include="gc\GCUnsafeScope.cpp" />
     <ClCompile Include="gc\GCVisitor.cpp" />
     <ClCompile Include="gc\GCWaiter.cpp" />
-    <ClCompile Include="gc\heap\GCMemoryPageAllocator.cpp" />
     <ClCompile Include="gc\heap\GCMemoryPageRange.cpp" />
+    <ClCompile Include="gc\heap\GCMemoryRangeSliced.cpp" />
+    <ClCompile Include="gc\heap\GCMemorySliced.cpp" />
     <ClCompile Include="gc\heap\GCThreadHeap.cpp" />
     <ClCompile Include="gc\heap\GCMemorySet.cpp" />
     <ClCompile Include="gc\heap\GCSpace.cpp" />
@@ -189,15 +191,16 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="gc\GCConstants.h" />
     <ClInclude Include="gc\heap\GCCardTable.h" />
+    <ClInclude Include="gc\heap\GCFixedMemoryRangeSliced.h" />
     <ClInclude Include="gc\heap\GCFixedSpace.h" />
-    <ClInclude Include="gc\heap\GCFreeList.h" />
     <ClInclude Include="gc\heap\GCFreeListEntry.h" />
     <ClInclude Include="gc\heap\GCHeap.h" />
     <ClInclude Include="gc\heap\GCHeapSettings.h" />
+    <ClInclude Include="gc\heap\GCLargeMemoryRangeSliced.h" />
     <ClInclude Include="gc\heap\GCMemoryEntry.h" />
     <ClInclude Include="gc\heap\GCMemoryHeader.h" />
-    <ClInclude Include="gc\heap\GCMemoryPageAllocator.h" />
     <ClInclude Include="gc\heap\GCMemoryPageRange.h" />
     <ClInclude Include="gc\heap\GCMemoryPage.h" />
     <ClInclude Include="gc\GCSettings.h" />
@@ -216,8 +219,10 @@
     <ClInclude Include="gc\GCUnsafeScope.h" />
     <ClInclude Include="gc\GCVisitor.h" />
     <ClInclude Include="gc\GCWaiter.h" />
+    <ClInclude Include="gc\heap\GCMemoryRangeSliced.h" />
+    <ClInclude Include="gc\heap\GCMemorySliced.h" />
     <ClInclude Include="gc\heap\GCThreadHeap.h" />
-    <ClInclude Include="gc\heap\GCType.h" />
+    <ClInclude Include="gc\GCType.h" />
     <ClInclude Include="gc\heap\GCMemorySet.h" />
     <ClInclude Include="gc\heap\GCSpace.h" />
     <ClInclude Include="gc\platform\GCPlatformAPI.h" />

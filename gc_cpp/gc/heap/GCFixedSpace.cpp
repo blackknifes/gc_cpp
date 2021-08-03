@@ -1,6 +1,8 @@
 #include "GCFixedSpace.h"
 
+#include "../GCConstants.h"
 #include "../template/GCUtils.h"
+#include "GCHeapSettings.h"
 
 GCFixedSpace::GCFixedSpace(const size_t fixedSize)
     : m_fixedSize(fixedSize),
@@ -16,6 +18,5 @@ void* GCFixedSpace::alloc(size_t _size)
 
 void GCFixedSpace::dealloc(void* pData)
 {
-    size_t addrSize = (size_t)pData;
-    GCUtils::AlignSize(addrSize, );
+    auto ptr = m_ranges.find(pData);
 }

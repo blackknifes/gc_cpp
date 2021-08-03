@@ -1,16 +1,12 @@
-#ifndef __GCSPACE_H__
-#define __GCSPACE_H__
-#include <vector>
-
-
+#ifndef __GCMEMORYRANGESLICED_H__
+#define __GCMEMORYRANGESLICED_H__
 #include "GCFreeListEntry.h"
 #include "GCMemoryPageRange.h"
 
-class GCSpace
+class GCMemoryRangeSliced
 {
 public:
-    virtual ~GCSpace();
-
+    virtual ~GCMemoryRangeSliced();
     virtual void* alloc(size_t _size) = 0;
     virtual void dealloc(void* pData) = 0;
 };

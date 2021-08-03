@@ -2,35 +2,7 @@
 
 #include <assert.h>
 
-#include "../template/GCUtils.h"
-
-GCFreeListEntry* GCFreeListEntry::MakeEntry(GCAddress pData)
-{
-    GCFreeListEntry* pEntry = (GCFreeListEntry*)pData;
-    GCUtils::Construct(pEntry);
-    return pEntry;
-}
-
-GCFreeListEntry* GCFreeListEntry::MakeEntry(GCAddress pData, size_t _size)
-{
-    GCFreeListEntry* pEntry = (GCFreeListEntry*)pData;
-    GCUtils::Construct(pEntry, _size);
-    return pEntry;
-}
-
-GCFreeListEntry::GCFreeListEntry() : m_size(0), m_nextEntry(nullptr) {}
-
-GCFreeListEntry::GCFreeListEntry(size_t size) : m_size(size), m_nextEntry(nullptr) {}
-
-size_t GCFreeListEntry::size() const
-{
-    return m_size;
-}
-
-void GCFreeListEntry::setSize(size_t _size)
-{
-    m_size = _size;
-}
+GCFreeListEntry::GCFreeListEntry() : m_nextEntry(nullptr) {}
 
 void GCFreeListEntry::link(GCFreeListEntry* pEntry)
 {

@@ -4,7 +4,7 @@
 
 #include "../platform/GCPlatformAPI.h"
 
-GCMemoryPageRange::GCMemoryPageRange(GCMemoryPageAllocator* pPage, uint8_t* pData, size_t _size)
+GCMemoryPageRange::GCMemoryPageRange(GCMemoryPage* pPage, uint8_t* pData, size_t _size)
     : m_allocator(pPage),
       m_data(pData),
       m_size(_size)
@@ -31,7 +31,7 @@ void GCMemoryPageRange::decommit()
     GCPlatformAPI::MemoryDecommit(m_data, m_size);
 }
 
-GCMemoryPageAllocator* GCMemoryPageRange::getAllocator() const
+GCMemoryPage* GCMemoryPageRange::getPage() const
 {
     return m_allocator;
 }

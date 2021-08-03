@@ -2,6 +2,7 @@
 #define __GCHEAP_H__
 #include <vector>
 
+#include "GCHeapSettings.h"
 #include "GCMemoryPage.h"
 #include "GCMemoryPageRange.h"
 #include "GCThreadHeap.h"
@@ -16,8 +17,10 @@ public:
     GCAddress alloc();
     void dealloc(GCAddress addr);
 
+    const GCHeapSettings& getSettings() const;
 private:
-    std::vector<GCMemoryPage*> m_pages;            //内存页
-    std::vector<GCThreadHeap*> m_threadHeaps;      //线程堆
+    GCHeapSettings m_settings;                 //堆设置
+    std::vector<GCMemoryPage*> m_pages;        //内存页
+    std::vector<GCThreadHeap*> m_threadHeaps;  //线程堆
 };
 #endif

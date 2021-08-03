@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include "../heap/GCType.h"
+#include "../GCType.h"
 
 namespace
 {

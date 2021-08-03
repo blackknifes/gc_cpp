@@ -2,7 +2,7 @@
 #define __GCPLATFORMAPI_H__
 #include <stdint.h>
 
-#include "../heap/GCType.h"
+#include "../GCType.h"
 
 struct PlatformTime
 {

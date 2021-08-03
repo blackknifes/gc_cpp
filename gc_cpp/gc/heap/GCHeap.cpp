@@ -24,12 +24,14 @@ GCHeap::~GCHeap()
     s_heap = nullptr;
 }
 
-GCAddress GCHeap::alloc() 
+GCAddress GCHeap::alloc()
 {
     return nullptr;
 }
 
-void GCHeap::dealloc(GCAddress addr) 
-{
+void GCHeap::dealloc(GCAddress addr) {}
 
+const GCHeapSettings& GCHeap::getSettings() const
+{
+    return m_settings;
 }

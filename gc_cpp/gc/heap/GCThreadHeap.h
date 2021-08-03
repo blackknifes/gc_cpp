@@ -1,7 +1,7 @@
 #ifndef __GCTHREADHEAP_H__
 #define __GCTHREADHEAP_H__
 #include "GCSpace.h"
-#include "GCType.h"
+#include "../GCType.h"
 
 class GCThreadHeap
 {

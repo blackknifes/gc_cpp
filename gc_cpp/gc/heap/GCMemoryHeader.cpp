@@ -1,5 +1,7 @@
 #include "GCMemoryHeader.h"
 
+#include "../GCType.h"
+
 GCMemoryHeader* GCMemoryHeader::GetHeaderPointer(void* pData)
 {
     return reinterpret_cast<GCMemoryHeader*>((uint8_t*)pData - sizeof(GCMemoryHeader));
@@ -7,10 +9,18 @@ GCMemoryHeader* GCMemoryHeader::GetHeaderPointer(void* pData)
 
 void* GCMemoryHeader::GetObjectPointer(GCMemoryHeader* pObject)
 {
-    return (uint8_t*)pObject + sizeof(GCMemoryHeader);
+    return (GCAddress)pObject + sizeof(GCMemoryHeader);
 }
 
-GCMemoryHeader::GCMemoryHeader() {}
+GCMemoryHeader::GCMemoryHeader(size_t _size)
+    : m_color(GC_MARK_WHITE),
+      m_pre(false),
+      m_next(false),
+      m_age(0),
+      m_threadIndex(0),
+      m_size(_size)
+{
+}
 
 GCMemoryHeader::~GCMemoryHeader() {}
 
@@ -44,11 +54,6 @@ uint32_t GCMemoryHeader::getThreadIndex() const
     return m_threadIndex;
 }
 
-void GCMemoryHeader::setSize(uint32_t _size)
-{
-    m_size = _size;
-}
-
 uint32_t GCMemoryHeader::getSize() const
 {
     return m_size;
@@ -57,4 +62,24 @@ uint32_t GCMemoryHeader::getSize() const
 void* GCMemoryHeader::getObjectPointer() const
 {
     return GetObjectPointer((GCMemoryHeader*)this);
+}
+
+void GCMemoryHeader::setPre(bool flag)
+{
+    m_pre = flag;
+}
+
+void GCMemoryHeader::setNext(bool flag)
+{
+    m_next = flag;
+}
+
+bool GCMemoryHeader::hasPre() const
+{
+    return m_pre;
+}
+
+bool GCMemoryHeader::hasNext() const
+{
+    return m_next;
 }
