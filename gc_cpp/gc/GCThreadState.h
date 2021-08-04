@@ -3,6 +3,7 @@
 #include <Windows.h>
 
 #include <atomic>
+#include <functional>
 #include <list>
 #include <vector>
 
@@ -35,6 +36,9 @@ public:
 
     GCScope* getScope() const;
 
+    void enumRoots(const std::function<void(GarbageCollected*)>& cb) const;
+    void enumScopePersist(const std::function<void(GarbageCollected*)>& cb) const;
+
 private:
     friend class GCManager;
     template<typename _Ty>
@@ -51,7 +55,7 @@ private:
 
     GCScope* m_scope;
 
-    std::list<GarbageCollected*> m_garbages;        //等待收集的垃圾
+    std::list<GarbageCollected*> m_garbages;  //等待收集的垃圾
     std::atomic<bool> m_safePoint;
 };
 #endif

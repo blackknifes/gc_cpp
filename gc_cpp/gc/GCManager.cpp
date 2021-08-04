@@ -7,6 +7,25 @@
 
 namespace
 {
+    class GCVisitorScan: public GCVisitor
+    {
+    public:
+        GCVisitorScan(std::vector<GarbageCollected*>& roots) 
+            : m_scannedRoots(roots)
+        {
+
+        }
+        void visit(GarbageCollected* pGarbage) override
+        {
+            if (!pGarbage) return;
+            m_scannedRoots.push_back(pGarbage);
+            pGarbage->gcTrace(this);
+        }
+
+    private:
+        std::vector<GarbageCollected*>& m_scannedRoots;
+    };
+
     GCManager* s_manager = nullptr;
 }
 
@@ -61,6 +80,17 @@ void GCManager::removeThreadState(GCThreadState* state)
     m_edenList.insert(m_edenList.end(), state->m_garbages.begin(), state->m_garbages.end());
     m_threads.erase(state->getThreadId());
     m_locker.unlock();
+}
+
+void GCManager::enumThreadState(const std::function<void(GCThreadState*)>& cb)
+{
+    for (const auto& item : m_threads) cb(item.second);
+}
+
+void GCManager::enumRoots(const std::function<void(GarbageCollected*)>& cb)
+{
+    for (const auto& item : m_roots)
+        cb(item.second(item.first));
 }
 
 void GCManager::gc(GCType gcType /*= GC_MINOR*/)
@@ -139,11 +169,27 @@ void GCManager::printNumberOfSafePointThread() const
 
 void GCManager::markPrivate(GCType markType)
 {
-    GCVisitor visitor;
-    GCVisitorCounted visitorCounted;
-    GCVisitor* pVisitor = m_settings->isVerbose() ? &visitorCounted : &visitor;
+    GCVisitorFull visitor;
+    GCVisitorCounted visitorCounted(&visitor);
+    GCVisitor* pVisitor =
+        m_settings->isVerbose() ? (GCVisitor*)&visitorCounted : (GCVisitor*)&visitor;
 
     m_locker.lock();
+    if (markType == GC_FULL)
+        markFull();
+    else
+        markIncrement();
+    m_locker.unlock();
+
+    if (m_settings->isVerbose()) printf("mark count: %zu\n", visitorCounted.getVisitCount());
+}
+
+void GCManager::markFull()
+{
+    GCVisitorFull visitor;
+    GCVisitorCounted visitorCounted(&visitor);
+    GCVisitor* pVisitor =
+        m_settings->isVerbose() ? (GCVisitor*)&visitorCounted : (GCVisitor*)&visitor;
     //扫描所有线程所持根节点以及persist节点
     for (const auto& item : m_threads)
     {
@@ -180,26 +226,69 @@ void GCManager::markPrivate(GCType markType)
         pThreadState->m_garbages.clear();
     }
 
-    if (markType == GC_FULL)
-    {
-        checkSweepOld();
-        checkSweepSurvivor(SIZE_MAX);
-        checkSweepEden();
-    }
-    else
-    {
-        size_t count = m_survivorList.size();
-        checkSweepEden();
-        if (m_survivorList.size() > m_settings->getSurvisorThreshold())
+    checkSweepOld();
+    checkSweepSurvivor(SIZE_MAX);
+    checkSweepEden();
+    m_edenCount = m_edenList.size();
+}
+
+void GCManager::markIncrement()
+{
+    GCVisitorScan visitorScan(m_scannedRoots);
+    if (m_scannedRoots.empty())
+    {  //扫描所有线程所持根节点以及persist节点
+        for (const auto& item : m_threads)
         {
-            checkSweepOld();
-            checkSweepSurvivor(count);
+            GCThreadState* pThreadState = item.second;
+            for (const auto& item : pThreadState->m_roots)
+            {
+                GarbageCollected* pObject = item.second(*item.first);
+                visitorScan.visit(pObject);
+            }
+
+            GCScope* pScope = pThreadState->getScope();
+            while (pScope)
+            {
+                pScope->visit(&visitorScan);
+                pScope = pScope->pre();
+            }
+        }
+
+        //扫描全局persist节点
+        for (const auto& item : m_roots)
+        {
+            GarbageCollected* pObject = item.second(*item.first);
+            visitorScan.visit(pObject);
         }
     }
-    m_edenCount = m_edenList.size();
-    m_locker.unlock();
 
-    if (m_settings->isVerbose()) printf("mark count: %zu\n", visitorCounted.getVisitCount());
+    GCVisitorFull visitor;
+    GCVisitorCounted visitorCounted(&visitor);
+    GCVisitor* pVisitor =
+        m_settings->isVerbose() ? (GCVisitor*)&visitorCounted : (GCVisitor*)&visitor;
+    while (!m_scannedRoots.empty())
+    {
+
+    }
+
+    //处理所有线程所持垃圾堆
+    for (const auto& item : m_threads)
+    {
+        GCThreadState* pThreadState = item.second;
+
+        m_edenList.insert(m_edenList.end(),
+                          pThreadState->m_garbages.begin(),
+                          pThreadState->m_garbages.end());
+        pThreadState->m_garbages.clear();
+    }
+
+    size_t count = m_survivorList.size();
+    checkSweepEden();
+    if (m_survivorList.size() > m_settings->getSurvisorThreshold())
+    {
+        checkSweepOld();
+        checkSweepSurvivor(count);
+    }
 }
 
 const GCStopTheWorld* GCManager::getStopFlag() const
@@ -227,6 +316,17 @@ void GCManager::addEden()
     if (++m_edenCount >= m_settings->getEdenThreshold()) gc();
 }
 
+
+std::list<GarbageCollected*>& GCManager::getGarbages(
+    GCGeneration generation /*= GC_GENERATION_EDEN*/)
+{
+    if (generation == GC_GENERATION_SURVIVOR)
+        return m_survivorList;
+    else if (generation == GC_GENERATION_OLD)
+        return m_oldList;
+    return m_edenList;
+}
+
 void GCManager::addRoot(void** ppAddress, PFN_Cast cast)
 {
     m_locker.lock();
@@ -248,7 +348,7 @@ void GCManager::checkSweepEden()
     while (itor != m_edenList.end())
     {
         GarbageCollected* pGarbage = *itor;
-        if (pGarbage->getGcMarkColor() == GC_MARK_WHITE)
+        if (GarbageCollectedOperation::getColor(pGarbage) == GC_MARK_WHITE)
         {  //未被标记，加入延迟清理列表
             itor = m_edenList.erase(itor);
             m_willLazySweep.push_back(pGarbage);
@@ -256,8 +356,8 @@ void GCManager::checkSweepEden()
         else
         {
             //已被标记，清理标记
-            pGarbage->gcSetColor(GC_MARK_WHITE);
-            pGarbage->addGCAge();
+            GarbageCollectedOperation::setColor(pGarbage, GC_MARK_WHITE);
+            GarbageCollectedOperation::addAge(pGarbage);
             ++itor;
             m_survivorList.push_back(pGarbage);
         }
@@ -274,7 +374,7 @@ void GCManager::checkSweepSurvivor(size_t count)
     {
         ++i;
         GarbageCollected* pGarbage = *itor;
-        if (pGarbage->getGcMarkColor() == GC_MARK_WHITE)
+        if (GarbageCollectedOperation::getColor(pGarbage) == GC_MARK_WHITE)
         {  //未被标记，加入延迟清理列表
             itor = m_survivorList.erase(itor);
             m_willLazySweep.push_back(pGarbage);
@@ -282,9 +382,9 @@ void GCManager::checkSweepSurvivor(size_t count)
         else
         {
             //已被标记，清理标记
-            pGarbage->gcSetColor(GC_MARK_WHITE);
-            pGarbage->addGCAge();
-            if (pGarbage->getGCAge() >= 15)
+            GarbageCollectedOperation::setColor(pGarbage, GC_MARK_WHITE);
+            GarbageCollectedOperation::addAge(pGarbage);
+            if (GarbageCollectedOperation::getAge(pGarbage) >= 15)
             {
                 itor = m_survivorList.erase(itor);
                 m_oldList.push_back(pGarbage);
@@ -302,7 +402,7 @@ void GCManager::checkSweepOld()
     while (itor != m_oldList.end())
     {
         GarbageCollected* pGarbage = *itor;
-        if (pGarbage->getGcMarkColor() == GC_MARK_WHITE)
+        if (GarbageCollectedOperation::getColor(pGarbage) == GC_MARK_WHITE)
         {  //未被标记，加入延迟清理列表
             itor = m_oldList.erase(itor);
             m_willLazySweep.push_back(pGarbage);
@@ -310,7 +410,7 @@ void GCManager::checkSweepOld()
         else
         {
             //已被标记，清理标记
-            pGarbage->gcSetColor(GC_MARK_WHITE);
+            GarbageCollectedOperation::setColor(pGarbage, GC_MARK_WHITE);
             ++itor;
         }
     }

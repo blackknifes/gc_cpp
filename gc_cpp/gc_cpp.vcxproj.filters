@@ -60,61 +60,19 @@
     <ClCompile Include="gc\GCTimer.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="gc\heap\GCMemoryPage.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCMemoryEntry.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCFreeListEntry.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCHeap.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCThreadHeap.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCMemoryPageRange.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCSpace.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCMemoryHeader.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCMemorySet.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCCardTable.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="gc\platform\GCPlatformAPI.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="gc\template\GCBitArray.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="gc\heap\GCFixedSpace.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="gc\template\GCUtils.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="gc\heap\GCHeapSettings.cpp">
+    <ClCompile Include="gc\GCExecutor.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="gc\heap\GCMemorySliced.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCMemoryRangeSliced.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCFixedMemoryRangeSliced.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
-    <ClCompile Include="gc\heap\GCLargeMemoryRangeSliced.cpp">
+    <ClCompile Include="gc\GCExecutorFull.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -167,37 +125,7 @@
     <ClInclude Include="gc\GCTimer.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="gc\heap\GCMemoryPage.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCMemoryEntry.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCFreeListEntry.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCThreadHeap.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCHeap.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCMemoryPageRange.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCSpace.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCMemoryHeader.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCMemorySet.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="gc\GCType.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCCardTable.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="gc\platform\GCPlatformAPI.h">
@@ -209,25 +137,19 @@
     <ClInclude Include="gc\template\GCUtils.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="gc\heap\GCFixedSpace.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="gc\heap\GCHeapSettings.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="gc\GCConstants.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="gc\heap\GCMemorySliced.h">
+    <ClInclude Include="gc\GCExecutor.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="gc\heap\GCMemoryRangeSliced.h">
+    <ClInclude Include="gc\GCExecutorFull.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="gc\heap\GCFixedMemoryRangeSliced.h">
+    <ClInclude Include="gc\template\GCList.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="gc\heap\GCLargeMemoryRangeSliced.h">
+    <ClInclude Include="gc\template\GCMemoryPool.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

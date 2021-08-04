@@ -48,6 +48,10 @@ public:
     static uint64_t UTFToLocalTime(uint64_t time);
     static uint64_t LocalToUTFTime(uint64_t time);
 
+    static uint64_t GetPrecisionTime();
+    static uint64_t GetPrecisionMicroSecond();
+    static uint64_t GetPrecisionMS();
+
     static PlatformTime ConvertToPlatformTime(uint64_t time);
 
     static size_t GetHardwareMemorySize();

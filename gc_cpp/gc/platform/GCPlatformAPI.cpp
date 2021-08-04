@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include "../GCManager.h"
 #include "../GCType.h"
 
 namespace
@@ -47,18 +48,40 @@ namespace
 #endif
     }
 
+    uint64_t GetPerformanceFrequency()
+    {
+        LARGE_INTEGER li = {};
+        QueryPerformanceFrequency(&li);
+        return (uint64_t)li.QuadPart;
+    }
+
+    uint64_t frequence = GetPerformanceFrequency();
     GCAddressRange s_mainThreadAddres = {};
+    GCManager* s_manager = nullptr;
 }  // namespace
 
 bool GCPlatformAPI::InitMainThread()
 {
+    assert(!s_manager);
+    s_manager = new GCManager();
+    auto pSettings = s_manager->getSettings();
+    pSettings->setVerbose(false);
+    pSettings->setGCPeriod(30000);
+    pSettings->setEdenThreshold(0x10000);
+    pSettings->setSurvisorThreshold(32 * 1024 * 1024);
+
     s_mainThreadAddres = GetCurrentThreadStackRange();
     return s_mainThreadAddres.begin && s_mainThreadAddres.end;
 }
 
 void GCPlatformAPI::UninitMainThread()
 {
-    memset(&s_mainThreadAddres, 0, sizeof(s_mainThreadAddres));
+    if (s_manager)
+    {
+        delete s_manager;
+        s_manager = nullptr;
+        memset(&s_mainThreadAddres, 0, sizeof(s_mainThreadAddres));
+    }
 }
 
 bool GCPlatformAPI::IsMainThread()
@@ -145,6 +168,23 @@ uint64_t GCPlatformAPI::LocalToUTFTime(uint64_t time)
     return SysTimeToUInt64(localeTime);
 }
 
+uint64_t GCPlatformAPI::GetPrecisionTime()
+{
+    LARGE_INTEGER li = {};
+    QueryPerformanceCounter(&li);
+    return (uint64_t)li.QuadPart;
+}
+
+uint64_t GCPlatformAPI::GetPrecisionMicroSecond()
+{
+    return GetPrecisionTime() / (frequence / 1000000);
+}
+
+uint64_t GCPlatformAPI::GetPrecisionMS()
+{
+    return GetPrecisionTime() / (frequence / 1000);
+}
+
 PlatformTime GCPlatformAPI::ConvertToPlatformTime(uint64_t time)
 {
     SYSTEMTIME sysTime;
@@ -152,7 +192,7 @@ PlatformTime GCPlatformAPI::ConvertToPlatformTime(uint64_t time)
     return reinterpret_cast<const PlatformTime&>(sysTime);
 }
 
-size_t GCPlatformAPI::GetHardwareMemorySize() 
+size_t GCPlatformAPI::GetHardwareMemorySize()
 {
     MEMORYSTATUS status = {};
     GlobalMemoryStatus(&status);

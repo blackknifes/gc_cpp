@@ -1,5 +1,6 @@
 #ifndef __GCMANAGER_H__
 #define __GCMANAGER_H__
+#include <functional>
 #include <unordered_map>
 #include <vector>
 
@@ -30,6 +31,9 @@ public:
 
     void addThreadState(GCThreadState* state);
     void removeThreadState(GCThreadState* state);
+    void enumThreadState(const std::function<void(GCThreadState*)>& cb);
+
+    void enumRoots(const std::function<void(GarbageCollected*)>& cb);
 
     void gc(GCType gcType = GC_MINOR);
 
@@ -56,6 +60,9 @@ public:
     GCSettings* getSettings() const;
 
     void addEden();
+
+    std::list<GarbageCollected*>& getGarbages(GCGeneration generation = GC_GENERATION_EDEN);
+
 private:
     template<typename _Ty>
     friend class GCPersist;
@@ -64,6 +71,10 @@ private:
     void stopWorldPrivate();
     //标记
     void markPrivate(GCType markType);
+
+    void markFull();
+    void markIncrement();
+
     typedef GarbageCollected* (*PFN_Cast)(void*);
     void addRoot(void** ppAddress, PFN_Cast cast);
     void removeRoot(void** ppAddress);
@@ -80,6 +91,7 @@ private:
 
     std::unordered_map<void**, PFN_Cast> m_roots;         //全局根节点
     std::unordered_map<DWORD, GCThreadState*> m_threads;  // gc线程
+    std::vector<GarbageCollected*> m_scannedRoots;        //扫描到的根节点
 
     std::vector<GarbageCollected*> m_willLazySweep;  //延迟清理表
     GCSettings* m_settings;                          // gc设置

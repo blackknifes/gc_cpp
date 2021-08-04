@@ -10,6 +10,8 @@
 #include <unordered_set>
 #include <vector>
 
+#include "GCType.h"
+
 template<typename _Ty>
 class GCPtr;
 
@@ -18,7 +20,7 @@ class GarbageCollected;
 class GCVisitor
 {
 public:
-    virtual void visit(GarbageCollected* pGarbage);
+    virtual void visit(GarbageCollected* pGarbage) = 0;
 
     template<typename _Ty>
     void visit(const GCPtr<_Ty>& pGarbage)
@@ -106,16 +108,38 @@ public:
     }
 };
 
+class GCVisitorFull : public GCVisitor
+{
+public:
+    void visit(GarbageCollected* pGarbage) override;
+};
+
+class GCVisitorIncrement : public GCVisitor
+{
+public:
+    static constexpr const size_t kCheckLoopCount = 100000;
+    GCVisitorIncrement(uint64_t timeout);
+    void visit(GarbageCollected* pGarbage) override;
+
+    bool isFinish() const;
+
+private:
+    size_t m_couter;                 //标记计数
+    uint64_t m_timeoutMicroSeconds;  //超时时间
+    bool m_needReturn;
+};
+
 class GCVisitorCounted : public GCVisitor
 {
 public:
-    GCVisitorCounted();
+    GCVisitorCounted(GCVisitor* pVisitor);
     ~GCVisitorCounted();
 
     void visit(GarbageCollected* pGarbage) override;
     size_t getVisitCount() const;
 
 private:
+    GCVisitor* m_visitor;
     size_t m_counter;
 };
 #endif

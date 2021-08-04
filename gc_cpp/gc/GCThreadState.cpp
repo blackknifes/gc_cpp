@@ -115,6 +115,21 @@ GCScope* GCThreadState::getScope() const
     return m_scope;
 }
 
+void GCThreadState::enumRoots(const std::function<void(GarbageCollected*)>& cb) const
+{
+    for (const auto& item : m_roots) cb(item.second(item.first));
+}
+
+void GCThreadState::enumScopePersist(const std::function<void(GarbageCollected*)>& cb) const
+{
+    GCScope* pScope = m_scope;
+    while (pScope)
+    {
+        for (GarbageCollected* pObject : pScope->m_roots) cb(pObject);
+        pScope = pScope->pre();
+    }
+}
+
 void GCThreadState::addRoot(void** ppAddress, PFN_Cast cast)
 {
     m_roots.push_back({ppAddress, cast});

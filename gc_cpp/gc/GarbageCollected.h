@@ -2,19 +2,20 @@
 #define __GARBAGECOLLECTED_H__
 #include <atomic>
 
+#include "GCType.h"
 #include "GCVisitor.h"
 
-enum GCMarkColor : uint8_t
-{
-    GC_MARK_WHITE = 0,
-    GC_MARK_BLACK,
-    GC_MARK_GRAY
-};
+class GarbageCollected;
 
-struct GCMarkFlag
+class GarbageCollectedOperation
 {
-    GCMarkColor color : 2;
-    size_t age : sizeof(size_t) - 2;
+public:
+    static void setColor(GarbageCollected* pObject, GCMarkColor color);
+    static GCMarkColor getColor(GarbageCollected* pObject);
+    static void setDirty(GarbageCollected* pObject, bool dirty);
+    static bool isDirty(GarbageCollected* pObject);
+    static void addAge(GarbageCollected* pObject);
+    static size_t getAge(GarbageCollected* pObject);
 };
 
 class GarbageCollected
@@ -31,18 +32,7 @@ public:
     GarbageCollected* getObjectPointer() const;
 
 private:
-    friend class GCVisitor;
-    friend class GCManager;
-    friend class GCThreadState;
-    template<typename _Ty>
-    friend class GCPersist;
-
-    void gcSetColor(GCMarkColor color = GC_MARK_BLACK) const;
-    GCMarkColor getGcMarkColor() const;
-
-    void addGCAge() const;
-    size_t getGCAge() const;
-
+    friend class GarbageCollectedOperation;
     mutable GCMarkFlag m_gcValue;
 };
 #endif

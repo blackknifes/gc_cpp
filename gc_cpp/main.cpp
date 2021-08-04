@@ -14,6 +14,7 @@
 #include "gc/template/GCBitArray.h"
 #include "gc/platform/GCPlatformAPI.h"
 #include <thread>
+#include "gc/template/GCList.h"
 
 #define TEST_COUNT 512
 
@@ -99,12 +100,8 @@ DWORD CALLBACK ThreadProc(LPVOID ptr)
 void test()
 {
     runFlag = true;
-    GCManager manager;
-    auto pSettings = manager.getSettings();
-    pSettings->setVerbose(true);
-    pSettings->setGCPeriod(30000);
-    pSettings->setEdenThreshold(0x10000);
-    pSettings->setSurvisorThreshold(32 * 1024 * 1024);
+    GCPlatformAPI::InitMainThread();
+    GCManager::GetGlobal()->getSettings()->setVerbose(true);
 
     GCPersist<Test> test;
     HANDLE hThreads[TEST_COUNT];
@@ -121,48 +118,28 @@ void test()
         CloseHandle(hThreads[i]);
     }
     test = nullptr;
-}
-
-void test2()
-{
-    GCPlatformAPI::InitMainThread();
-
-    assert(GCPlatformAPI::IsMainThread());
-    std::thread tmpThread([]() 
-    {
-        assert(!GCPlatformAPI::IsMainThread());
-    });
-    tmpThread.join();
-
-    GCBitArray bitArr(4096);
-    bitArr.setFlag(64, true);
-    bitArr.setFlag(66, true);
-    size_t val = bitArr.searchNextFlag();
-    assert(val == 64);
-    val = bitArr.searchNextFlag(65);
-    assert(val == 66);
-    val = bitArr.searchNextFlag(67);
-    assert(val == GCBitArray::npos);
-
-    uint64_t utfTime = GCPlatformAPI::CurrentUTFTime();
-    PlatformTime platformTime = GCPlatformAPI::ConvertToPlatformTime(utfTime);
-    uint64_t localTime = GCPlatformAPI::UTFToLocalTime(utfTime);
-    PlatformTime localPlatTime = GCPlatformAPI::ConvertToPlatformTime(localTime);
-    char buf[1024];
-    GCPlatformAPI::FormatNormalTime(localPlatTime, buf, 1024);
-    printf("%s\n", buf);
+    GCPlatformAPI::UninitMainThread();
 }
 
 int main()
 {
-    test2();
-    return 0;
-    for (size_t i = 0; i < 10; ++i)
+//     for (size_t i = 0; i < 10; ++i)
+//     {
+//         system("cls");
+//         test();
+//         printf("count: %u\n", s_count.load());
+//         if (s_count != 0) _CrtDbgBreak();
+//     }
+
+    GCList<int> list;
+    list.push_back(5);
+    list.push_back(6);
+    list.push_front(4);
+    list.push_front(3);
+
+    for (int val: list)
     {
-        system("cls");
-        test();
-        printf("count: %u\n", s_count.load());
-        if (s_count != 0) _CrtDbgBreak();
+        printf("%d\n", val);
     }
 
     return 0;

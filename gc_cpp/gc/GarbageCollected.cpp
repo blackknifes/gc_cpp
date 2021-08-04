@@ -4,6 +4,36 @@
 #include "GCScope.h"
 #include "GCThreadState.h"
 
+void GarbageCollectedOperation::setColor(GarbageCollected* pObject, GCMarkColor color)
+{
+    pObject->m_gcValue.color = color;
+}
+
+GCMarkColor GarbageCollectedOperation::getColor(GarbageCollected* pObject)
+{
+    return pObject->m_gcValue.color;
+}
+
+void GarbageCollectedOperation::setDirty(GarbageCollected* pObject, bool dirty)
+{
+    pObject->m_gcValue.dirty = dirty;
+}
+
+bool GarbageCollectedOperation::isDirty(GarbageCollected* pObject)
+{
+    return pObject->m_gcValue.dirty;
+}
+
+void GarbageCollectedOperation::addAge(GarbageCollected* pObject)
+{
+    ++pObject->m_gcValue.age;
+}
+
+size_t GarbageCollectedOperation::getAge(GarbageCollected* pObject)
+{
+    return pObject->m_gcValue.age;
+}
+
 GarbageCollected::GarbageCollected()
 {
     memset(&m_gcValue, 0, sizeof(m_gcValue));
@@ -23,24 +53,4 @@ void GarbageCollected::gcTrace(GCVisitor* visitor) {}
 GarbageCollected* GarbageCollected::getObjectPointer() const
 {
     return const_cast<GarbageCollected*>(this);
-}
-
-void GarbageCollected::gcSetColor(GCMarkColor color /*= MARK_BLACK*/) const
-{
-    m_gcValue.color = color;
-}
-
-GCMarkColor GarbageCollected::getGcMarkColor() const
-{
-    return m_gcValue.color;
-}
-
-void GarbageCollected::addGCAge() const
-{
-    ++m_gcValue.age;
-}
-
-size_t GarbageCollected::getGCAge() const
-{
-    return m_gcValue.age;
 }
